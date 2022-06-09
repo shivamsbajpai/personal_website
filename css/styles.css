@@ -1,0 +1,39 @@
+body {
+    background-color: black;
+}
+div {
+    text-align: center;
+    padding-top: 10%;
+}
+p {
+    font-family: Roboto;
+    font-size: 25px;
+    color: whitesmoke;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.hi-txt {
+    color: white;
+    margin-bottom: 15px;
+}
+.name-txt {
+    font-size: 46px;
+    font-weight: bold;
+}
+.explore-btn {
+    border: none;
+    background-color: rgba(235, 153, 1, 1);;
+    font-family: Roboto;
+    border-radius: 3rem;
+    text-align: center;
+    margin-top: 20%;
+    padding: 20px 15px;
+    font-weight: 400;
+    font-size: 25px;
+    color: rgba(0, 0, 0, 0.85);
+    cursor: pointer;
+    transition: background-color 0.25s;
+}
+.explore-btn:hover {
+    background-color: rgba(235, 153, 1, 0.85);
+}
