@@ -1,23 +1,600 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <title> Shivam Bajpai</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
-    rel="stylesheet">
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shivam Som Bajpai</title>
+<meta name="description" content="Builder. Maker. Human-AI collaborator. Portfolio of Shivam Som Bajpai.">
+<meta name="author" content="Shivam Som Bajpai">
+<meta name="theme-color" content="#0a0a0a">
 
+<link rel="canonical" href="https://shivambajpai.com">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Shivam Som Bajpai">
+<meta property="og:description" content="Builder. Maker. Human-AI collaborator. Portfolio of Shivam Som Bajpai.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shivambajpai.com">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Shivam Som Bajpai">
+<meta name="twitter:description" content="Builder. Maker. Human-AI collaborator. Portfolio of Shivam Som Bajpai.">
+
+<!-- Inline SVG favicon (accent mark on dark bg) — no external file dependency -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a0a'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='18' font-weight='700' text-anchor='middle' fill='%23c8a2ff'%3ES%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --border: #1e1e1e;
+    --text: #e0e0e0;
+    --muted: #6b6b6b;
+    --accent: #c8a2ff;
+    --accent-dim: #7c5aad;
+    --green: #4ade80;
+    --blue: #60a5fa;
+    --amber: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  /* Skip to content (visually hidden until focused) */
+  .skip-link {
+    position: absolute;
+    left: 8px;
+    top: -48px;
+    z-index: 200;
+    padding: 8px 14px;
+    font-size: 12px;
+    background: var(--surface);
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    color: var(--accent);
+    transition: top 0.2s;
+  }
+  .skip-link:focus { top: 8px; opacity: 1; }
+
+  /* Sticky top nav */
+  .site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .site-nav .nav-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 12px 24px;
+    display: flex;
+    gap: 24px;
+  }
+  .site-nav a {
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .site-nav a:hover,
+  .site-nav a:focus-visible {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+    opacity: 1;
+  }
+
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--accent-dim);
+    color: #fff;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  a:hover { opacity: 0.75; }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 0;
+  }
+
+  .hero-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 24px;
+    color: #fff;
+  }
+
+  .hero h1 .accent { color: var(--accent); }
+
+  .hero-bio {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 540px;
+    margin-bottom: 40px;
+  }
+
+  .hero-links {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .hero-links a {
+    font-size: 13px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .hero-links a:hover {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+    opacity: 1;
+  }
+
+  /* Sections */
+  section {
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 40px;
+  }
+
+  /* Project Cards */
+  .project {
+    margin-bottom: 48px;
+  }
+
+  .project-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .project-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .project-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .tag.go { color: var(--blue); border-color: #1e3a5f; }
+  .tag.js { color: var(--amber); border-color: #4a3a10; }
+  .tag.python { color: var(--green); border-color: #1a3a1a; }
+  .tag.kotlin { color: var(--accent); border-color: #2a1a3a; }
+  .tag.swift { color: #f97316; border-color: #3a2010; }
+  .tag.shipped { color: var(--green); border-color: #1a3a1a; background: #0a1a0a; }
+  .tag.react { color: var(--blue); border-color: #1e3a5f; }
+  .tag.ts { color: var(--blue); border-color: #1e3a5f; }
+  .tag.cloudflare { color: #f97316; border-color: #3a2010; }
+  .tag.ml { color: #f472b6; border-color: #3a1a2a; }
+  .tag.private { color: var(--muted); border-color: var(--border); font-style: italic; }
+
+  .project-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    max-width: 600px;
+  }
+
+  .project-links {
+    display: flex;
+    gap: 16px;
+  }
+
+  .project-links a {
+    font-size: 12px;
+    color: var(--accent-dim);
+  }
+  .project-links a:hover { color: var(--accent); opacity: 1; }
+
+  /* About */
+  .about-text {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 600px;
+  }
+  .about-text p { margin-bottom: 16px; }
+  .about-text strong { color: var(--text); font-weight: 500; }
+
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .stack-item {
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .stack-item h4 {
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .stack-item p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Tvash section */
+  .tvash-block {
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-dim);
+    border-radius: 6px;
+    margin-top: 32px;
+  }
+
+  .tvash-block h3 {
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .tvash-block p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Footer */
+  footer {
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  footer p {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Scroll indicator */
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  /* Respect users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .scroll-hint { animation: none; }
+    * { transition: none !important; }
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .container { padding: 0 16px; }
+    section { padding: 60px 0; }
+    .hero { padding: 60px 0; }
+    .hero-links { gap: 16px; }
+    .stack-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
 <body>
-  <div>
-    <p class="hi-txt">Hi,</p>
-    <p class="name-txt">I'm Shivam</p>
-    <button class="explore-btn">Let's Explore</button>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="site-nav" aria-label="Primary">
+  <div class="nav-inner">
+    <a href="#projects">Projects</a>
+    <a href="#about">About</a>
+    <a href="mailto:shivamsbajpai@gmail.com">Email</a>
   </div>
+</nav>
+
+<div class="container" id="main">
+  <header class="hero">
+    <p class="hero-label">shivam som bajpai</p>
+    <h1>I build things that <span class="accent">work</span>.</h1>
+    <p class="hero-bio">
+      Full-stack builder across fintech, agritech, and AI tooling.
+      Go services, Android apps, ML pipelines, CLI tools &mdash; whatever the
+      problem needs. I build loan platforms for underserved borrowers, weather
+      apps for farmers, and infrastructure for AI agents. Human ideas,
+      AI-assisted execution.
+    </p>
+    <div class="hero-links">
+      <a href="https://github.com/shivamsbajpai" target="_blank" rel="noopener">github</a>
+      <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
+      <a href="mailto:shivamsbajpai@gmail.com">email</a>
+    </div>
+    <a class="scroll-hint" href="#projects" aria-label="Scroll to projects">scroll &darr;</a>
+  </header>
+
+  <section id="projects">
+    <h2 class="section-label">Projects</h2>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">loan-app</span>
+        <div class="project-tags">
+          <span class="tag go">Go</span>
+          <span class="tag kotlin">Kotlin</span>
+          <span class="tag private">private</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        Full-stack fintech loan origination platform for small business owners
+        in India who lack formal credit history. A server-driven Journey Orchestrator
+        dynamically walks borrowers through only the steps that apply to them, with
+        voice-augmented UX in Hindi/English. Underwrites through alternative signals:
+        live inventory video, Account Aggregator bank-flow, credit bureau data, and
+        SMS-based capacity proxies. Multi-lender white-label tenancy. Go backend
+        (21 internal packages), Kotlin/Compose Android app, Docker + Caddy deployment.
+      </p>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">second-brain</span>
+        <div class="project-tags">
+          <span class="tag go">Go</span>
+          <span class="tag react">React</span>
+          <span class="tag private">private</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        A structured personal-knowledge service that any AI agent can query via
+        MCP (Model Context Protocol). Stores preferences, policies, vendor ratings,
+        and order history across domains &mdash; food, coding, cabs, services. Agents call
+        get_briefing() for fast, token-frugal context. Built with Go, Postgres + pgvector,
+        MCP over HTTP/SSE, and a React dashboard for feedback and metrics. Includes
+        sensitivity classification, provenance tracking, and idempotent markdown import.
+      </p>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">sales-saathi</span>
+        <div class="project-tags">
+          <span class="tag python">Python</span>
+          <span class="tag private">private</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        Live Hindi sales-call coaching tool. Two people role-play a loan sales call
+        with push-to-talk; the system transcribes via local whisper-cpp (Metal-accelerated,
+        no cloud), whispers real-time coaching nudges, then produces a scored scorecard
+        across 7 dimensions with evidence-verified quotes. Supports live coaching and
+        recorded-call upload. Runs entirely locally &mdash; no API keys, no cloud.
+      </p>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">farm-pro</span>
+        <div class="project-tags">
+          <span class="tag python">Python</span>
+          <span class="tag kotlin">Kotlin</span>
+          <span class="tag private">private</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        Bilingual (English + Hindi) Android app and FastAPI backend that surfaces
+        IMD weather data, severe-weather nowcasts, and agricultural advisory bulletins
+        to farmers in Kanpur Dehat, UP. Scrapes IMD data and parses DAAS PDF bulletins.
+        Every card shows its source link and freshness badge. Offline-first with
+        WorkManager background sync. Currently in internal testing.
+      </p>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">photo-gallery</span>
+        <div class="project-tags">
+          <span class="tag python">Python</span>
+          <span class="tag ml">ML</span>
+          <span class="tag cloudflare">Cloudflare</span>
+          <span class="tag private">private</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        Turns event photos into a deployed site where guests click a face to see
+        every photo that person appears in. Uses RetinaFace + ArcFace for detection
+        and recognition, agglomerative clustering to group faces. Guests can
+        collaboratively name people. Deployed on Cloudflare Pages + R2 + KV with
+        password protection. Used for real weddings and events.
+      </p>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">lomasa-cli</span>
+        <div class="project-tags">
+          <span class="tag go">Go</span>
+          <span class="tag shipped">shipped</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        Local AI agent manager &mdash; like nvm, but for open-source AI agents.
+        Install, configure, and launch tools like Ollama and OpenCode.
+        No API keys. No cloud. Everything runs locally. Named after the sage
+        Lomasa from the Mahabharata.
+      </p>
+      <div class="project-links">
+        <a href="https://github.com/lomasa-ai/lomasa-cli" target="_blank" rel="noopener">source &rarr;</a>
+      </div>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">yt-skin</span>
+        <div class="project-tags">
+          <span class="tag js">JavaScript</span>
+          <span class="tag shipped">shipped</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        Browser extension that adds a "skin" to YouTube. Saves videos and channels
+        without logging in &mdash; solving the problem of losing recommendations when
+        watch history is off. Published on both Firefox Add-ons and Chrome Web Store.
+      </p>
+      <div class="project-links">
+        <a href="https://github.com/shivamsbajpai/yt-skin" target="_blank" rel="noopener">source &rarr;</a>
+      </div>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-name">ToLetLife</span>
+        <div class="project-tags">
+          <span class="tag kotlin">Kotlin</span>
+          <span class="tag python">Python</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        A rental marketplace where owners and renters connect directly.
+        Full-stack: Kotlin Android app with a FastAPI backend, containerized
+        with Docker. Complete product with a pitch deck.
+      </p>
+      <div class="project-links">
+        <a href="https://github.com/shivamsbajpai/ToLetLife" target="_blank" rel="noopener">android &rarr;</a>
+        <a href="https://github.com/shivamsbajpai/tolet_life_api" target="_blank" rel="noopener">api &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2 class="section-label">About</h2>
+
+    <div class="about-text">
+      <p>
+        I'm a builder who doesn't stick to one platform. Android in Kotlin, iOS in Swift,
+        browser extensions in JS, CLIs in Go, backends in Python, ML pipelines when
+        the problem calls for it. If it solves a problem, I'll learn whatever stack
+        gets it done.
+      </p>
+      <p>
+        Right now I'm deep in the <strong>AI/LLM space</strong> &mdash; not just using these tools,
+        but building infrastructure around them. second-brain is an MCP-native memory
+        service for AI agents. sales-saathi runs local whisper + LLM for real-time
+        Hindi coaching. <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
+        is where the open-source work lives.
+      </p>
+      <p>
+        I build for domains I care about &mdash; <strong>fintech</strong> (loan origination
+        for underserved borrowers), <strong>agritech</strong> (weather advisories for
+        farmers in UP), and tools that make daily life better. Two projects are on
+        public app stores. The rest solve problems I actually had.
+      </p>
+    </div>
+
+    <div class="stack-grid">
+      <div class="stack-item">
+        <h4>Languages</h4>
+        <p>Go, Python, Kotlin, Swift, JavaScript, TypeScript, Shell</p>
+      </div>
+      <div class="stack-item">
+        <h4>Domains</h4>
+        <p>Fintech, Agritech, AI/LLM tooling, Mobile, CLI, ML pipelines</p>
+      </div>
+      <div class="stack-item">
+        <h4>Infrastructure</h4>
+        <p>Docker, Postgres, Cloudflare Workers/R2, FastAPI, MCP, whisper-cpp</p>
+      </div>
+    </div>
+
+    <div class="tvash-block">
+      <h3>Meet Tvash</h3>
+      <p>
+        Tvash is my AI collaborator &mdash; a Claude-powered agent that helps me build.
+        Not a gimmick. An actual part of my workflow. The lomasa-ai projects are all
+        human-AI pair programmed: I bring the ideas, Tvash helps execute.
+        <a href="https://github.com/claudeforssb" target="_blank" rel="noopener">@claudeforssb</a>
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; Shivam Som Bajpai</p>
+  </footer>
+</div>
 
 </body>
-
 </html>
