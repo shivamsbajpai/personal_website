@@ -43,6 +43,18 @@
   hemisphere/ambient, graded warm sky dome with a soft sun-scatter halo, bright
   fog — the agreed "sunny daytime, part-of-the-world" bar.
 
+- **D11 — Checkpoints are deserted army outposts (response to feedback).**
+  Removed the background buttes/mountains. Each checkpoint is now a graded flat
+  **pad** (terrainH blends 95% toward the pad height within a radius so props sit
+  on visible flat ground) holding a procedural **army outpost**: tank (hull +
+  turret + barrel + tracks), crate stack, sandbag ring, antenna mast + dish, and
+  tank-trap hedgehogs — olive-drab/dark-metal materials, laid in a shallow arc
+  facing the camera and scaled ~1.5×. The camera vantage is lower/closer and
+  centered so the outpost composes in frame; it resolves on approach and sits as
+  the dimmed backdrop when docked. The waypoint beacon is now a subtle thin
+  locator. **These are procedural stand-ins; Slice 2 swaps in the CC0 GLTF
+  military kit.**
+
 - **D10 — Photoreal pass (response to "make the space more real").** Added: real
   directional-light **shadow mapping** (PCFSoft; the shadow frustum follows the
   camera so dune self-shadows stay crisp), **ridged/crested dune** height (base

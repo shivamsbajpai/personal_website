@@ -79,11 +79,24 @@ function vnoise(x, y) {
 function fbm(x, y) { let f = 0, a = 0.5, fr = 1; for (let i = 0; i < 5; i++) { f += a * vnoise(x * fr, y * fr); fr *= 2.03; a *= 0.5; } return f; }
 function ridged(x, y) { const n = fbm(x, y); return 1 - Math.abs(n * 2 - 1); }
 // rolling base + crested (ridged) dunes + wind ripples
-function terrainH(x, z) {
+function rawH(x, z) {
   const base = fbm(x * 0.0016 + 10, z * 0.0016 + 10) * 118;
   const dune = Math.pow(ridged(x * 0.0042 + 5, z * 0.0042 + 5), 1.5) * 64;
   const ripple = Math.sin((x * 0.8 + z * 0.35) * 0.05 + fbm(x * 0.02, z * 0.02) * 6) * 1.4;
   return base + dune + ripple - 92;
+}
+// Graded flat pads around each checkpoint so the outpost props sit on visible
+// flat ground (an army base would be graded). Pad heights are precomputed from
+// the raw field; terrainH blends toward them within a radius.
+const PADS = CHECKPOINTS.map((cp) => ({ x: cp.anchor[0], z: cp.anchor[1], h: 0 }));
+PADS.forEach((p) => { p.h = rawH(p.x, p.z); });
+function terrainH(x, z) {
+  let h = rawH(x, z);
+  for (const p of PADS) {
+    const d = Math.hypot(x - p.x, z - p.z), R = 64;
+    if (d < R) { const e = d / R, s = e * e * (3 - 2 * e); const t = (1 - s) * 0.95; h = h * (1 - t) + p.h * t; }
+  }
+  return h;
 }
 
 /* ---------------- WebGL scene ---------------------------------------------- */
@@ -152,25 +165,6 @@ function initScene(renderer) {
   terrain.receiveShadow = true; terrain.castShadow = true;
   scene.add(terrain);
 
-  /* --- distant buttes for scale/depth (fade into fog) --- */
-  const butteMat = new THREE.MeshStandardMaterial({ color: 0x8a4824, roughness: 1, flatShading: true });
-  const buttes = [[-520, -900, 150, 210], [360, -1180, 210, 290], [-160, -1340, 260, 350], [640, -820, 120, 160]];
-  buttes.forEach(([x, z, r, hgt]) => {
-    const bgeo = new THREE.ConeGeometry(r, hgt, 10, 5);
-    const bp = bgeo.attributes.position;
-    for (let i = 0; i < bp.count; i++) {
-      const vx = bp.getX(i), vy = bp.getY(i), vz = bp.getZ(i), yt = (vy + hgt / 2) / hgt;
-      const n = fbm(vx * 0.03 + x, vz * 0.03 + z) - 0.5;
-      bp.setX(i, vx + n * r * 0.42 * (0.4 + yt));
-      bp.setZ(i, vz + n * r * 0.42 * (0.4 + yt));
-      bp.setY(i, vy + (fbm(vx * 0.06 + 5, vz * 0.06 + 5) - 0.5) * hgt * 0.16);
-    }
-    bgeo.computeVertexNormals();
-    const m = new THREE.Mesh(bgeo, butteMat);
-    m.position.set(x, terrainH(x, z) + hgt * 0.4, z); m.rotation.y = hash(x, z) * 6.28; m.receiveShadow = true;
-    scene.add(m);
-  });
-
   /* --- sky dome with sun scatter glow --- */
   const sunDir = new THREE.Vector3(-0.72, 0.55, -0.42).normalize();
   scene.add(new THREE.Mesh(new THREE.SphereGeometry(2200, 32, 16), new THREE.ShaderMaterial({
@@ -216,25 +210,86 @@ function initScene(renderer) {
   const dust = new THREE.Points(dgeo, new THREE.PointsMaterial({ color: 0xfff0d0, size: 1.3, transparent: true, opacity: .22, depthWrite: false, blending: THREE.AdditiveBlending }));
   scene.add(dust);
 
-  /* --- placeholder checkpoint markers (real props in Slice 2) --- */
+  /* --- checkpoint waypoint beacons (thin locators visible from afar) --- */
   const markerColors = [0xff5b41, 0xffb24a, 0xff7a3c];
   const anchors = CHECKPOINTS.map((cp) => { const [x, z] = cp.anchor; return new THREE.Vector3(x, terrainH(x, z), z); });
   const markers = [];
   anchors.forEach((a, i) => {
     const col = markerColors[i % markerColors.length];
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 130, 8, 1, true),
-      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-    beam.position.set(a.x, a.y + 65, a.z); scene.add(beam);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(5, 6.4, 36),
-      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
-    ring.rotation.x = -Math.PI / 2; ring.position.set(a.x, a.y + .8, a.z); scene.add(ring);
-    markers.push({ beam, ring });
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 150, 8, 1, true),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    beam.position.set(a.x, a.y + 75, a.z); scene.add(beam);
+    markers.push({ beam, ring: { scale: { setScalar() {} }, material: {} } });
+  });
+
+  /* --- deserted army outpost props at each checkpoint (procedural; GLTF kit in Slice 2) --- */
+  const matTank = new THREE.MeshStandardMaterial({ color: 0x6f6b46, roughness: 0.92, metalness: 0.06 });
+  const matMetal = new THREE.MeshStandardMaterial({ color: 0x34332a, roughness: 0.8, metalness: 0.25 });
+  const matCrate = new THREE.MeshStandardMaterial({ color: 0x6e4f2a, roughness: 1 });
+  const matBag = new THREE.MeshStandardMaterial({ color: 0x9a8456, roughness: 1 });
+  const matPole = new THREE.MeshStandardMaterial({ color: 0x4f4c44, roughness: 0.7, metalness: 0.3 });
+  const pmesh = (geo, mat) => { const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; return m; };
+
+  function buildTank() {
+    const t = new THREE.Group();
+    const hull = pmesh(new THREE.BoxGeometry(6.6, 1.6, 3.2), matTank); hull.position.y = 1.5; t.add(hull);
+    const turret = pmesh(new THREE.BoxGeometry(3, 1.1, 2.4), matTank); turret.position.set(-0.4, 2.55, 0); t.add(turret);
+    const barrel = pmesh(new THREE.CylinderGeometry(0.2, 0.2, 4.4, 10), matMetal); barrel.rotation.z = Math.PI / 2; barrel.position.set(2.3, 2.7, 0); t.add(barrel);
+    [1.55, -1.55].forEach((z) => { const tr = pmesh(new THREE.BoxGeometry(7, 1.1, 0.8), matMetal); tr.position.set(0, 0.55, z); t.add(tr); });
+    return t;
+  }
+  function buildCrates() {
+    const g = new THREE.Group();
+    [[1.5, 0, 0.75, 0], [1.3, 1.4, 0.65, 0.3], [1.3, 0.3, 2.05, 0.4]].forEach(([s, x, y, z]) => {
+      const c = pmesh(new THREE.BoxGeometry(s, s, s), matCrate); c.position.set(x, y, z); c.rotation.y = hash(x * 9, z * 9); g.add(c);
+    });
+    return g;
+  }
+  function buildSandbags() {
+    const g = new THREE.Group(), n = 16, R = 2.6;
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2;
+      for (let row = 0; row < 2; row++) {
+        const b = pmesh(new THREE.BoxGeometry(1.0, 0.45, 0.7), matBag);
+        b.position.set(Math.cos(a) * R, 0.28 + row * 0.46, Math.sin(a) * R); b.rotation.y = a + row * 0.2; g.add(b);
+      }
+    }
+    return g;
+  }
+  function buildAntenna() {
+    const g = new THREE.Group();
+    const base = pmesh(new THREE.BoxGeometry(1.6, 0.8, 1.6), matCrate); base.position.y = 0.4; g.add(base);
+    const mast = pmesh(new THREE.CylinderGeometry(0.1, 0.18, 9.5, 8), matPole); mast.position.y = 5.0; g.add(mast);
+    const dish = pmesh(new THREE.CylinderGeometry(1.1, 1.1, 0.18, 16), matMetal); dish.rotation.x = Math.PI / 2.4; dish.position.set(0, 6.8, 0.4); g.add(dish);
+    return g;
+  }
+  function buildHedgehog() {
+    const g = new THREE.Group();
+    for (let k = 0; k < 3; k++) { const bar = pmesh(new THREE.CylinderGeometry(0.1, 0.1, 3, 6), matMetal); bar.rotation.set(k * 1.0, k * 0.7, Math.PI / 2 * (k % 2)); g.add(bar); }
+    return g;
+  }
+  // Build one outpost as a group (local coords, y=0 = flat pad ground) then
+  // place + scale it at each checkpoint anchor.
+  // Props laid in a shallow arc facing the camera (+z = toward camera).
+  function buildOutpost(seed) {
+    const g = new THREE.Group();
+    const tank = buildTank(); tank.position.set(-7, 0, -2); tank.rotation.y = 0.5 + hash(seed, 1); g.add(tank);
+    const crates = buildCrates(); crates.position.set(9, 0, -3); crates.rotation.y = hash(seed, 3) * 6.28; g.add(crates);
+    const bags = buildSandbags(); bags.position.set(2, 0, 6); g.add(bags);
+    const ant = buildAntenna(); ant.position.set(-11, 0, -11); ant.rotation.y = hash(seed, 4) * 6.28; g.add(ant);
+    const hh = buildHedgehog(); hh.position.set(12, 0.4, 5); hh.rotation.y = hash(seed, 5) * 6.28; g.add(hh);
+    return g;
+  }
+  anchors.forEach((a, i) => {
+    const camp = buildOutpost(i * 37 + 3);
+    camp.position.set(a.x, a.y, a.z); camp.scale.setScalar(1.5);
+    scene.add(camp);
   });
 
   /* --- camera vantages --- */
   const vantages = anchors.map((a) => ({
-    pos: new THREE.Vector3(a.x, a.y + 20, a.z + 72),
-    look: new THREE.Vector3(a.x, a.y + 8, a.z),
+    pos: new THREE.Vector3(a.x, a.y + 12, a.z + 34),
+    look: new THREE.Vector3(a.x, a.y + 4, a.z - 4),
   }));
   function vantage(f, outPos, outLook) {
     const i0 = Math.max(0, Math.min(vantages.length - 1, Math.floor(f)));
@@ -317,8 +372,8 @@ function initScene(renderer) {
     for (let i = 0; i < dN; i++) { arr[i * 3] += 0.2; if (arr[i * 3] > 400) arr[i * 3] = -400; }
     dgeo.attributes.position.needsUpdate = true;
     dust.position.set(camera.position.x, 0, camera.position.z);
-    const pulse = 0.36 + Math.sin((t || 0) * 0.003) * 0.18;
-    markers.forEach((m) => { m.beam.material.opacity = pulse; m.ring.scale.setScalar(1 + Math.sin((t || 0) * 0.003) * 0.12); });
+    const beamOp = 0.09 + Math.sin((t || 0) * 0.003) * 0.04;
+    markers.forEach((m) => { m.beam.material.opacity = beamOp; });
 
     composer.render();
     if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); }
