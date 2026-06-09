@@ -14,9 +14,9 @@ Blocked-by: #3 (DONE — merged via PR #10)
 | 3 | Per-checkpoint outpost composition (DS3) | DONE ✅ | 83928e7, 2f64c26 | `buildGltfOutpost()` clones kit into camera-facing arc, `hash`-seeded per-cp yaw, shadows on every mesh; procedural camps removed + geo disposed on swap. Scale/arc tuned (`2f64c26`); prop visibility under low sun deferred to owner gate (step 8) |
 | 4 | WebGL holo-screen on a prop (DS4) | DONE ✅ | 4b11f4b | emissive scanline/flicker/sweep ShaderMaterial + dark glass backing on a field-terminal prop per checkpoint; fades by 1−infoAmt; uTime freezes under reduced-motion |
 | 5 | CSS3D crisp panel + cross-fade (DS5) | DONE ✅ | cf5a1b0 | **hybrid** (owner-chosen): holo→CSS3D reveal card at the outpost→existing flat crisp panel; reading system untouched. See DS5 amendment in defects |
-| 6 | Reduced-motion path (DS6) | holo+card done; finalize at 7 | 4b11f4b, cf5a1b0 | holo uTime freeze (step 4) + opacity-only card/panel cross-fade (reduced-motion-safe); whole-path render verify at step 7 |
-| 7 | Local verification | pending | — | node tests + Playwright smoke |
-| 8 | Owner approval gate | pending | — | sign-off before Slice 3 (#5) |
+| 6 | Reduced-motion path (DS6) | DONE ✅ | 4b11f4b, cf5a1b0 | holo uTime freeze + opacity-only card/panel cross-fade; whole-path verified under emulated `prefers-reduced-motion` at step 7 (travel loop preserved, holo static, card+panel still cross-fade) |
+| 7 | Local verification | spec ✅ code ✅ — **mobile card fix UNCOMMITTED** | — | `node --test` 13 pass; Playwright smoke 0 console errors, 8 GLBs 200, full path info→travel→dock verified live + card-reveal mid-band captured. **Mobile (<768px) found the reveal card clipping off the right edge → fixed** (responsive `cardScale()`/`cardXOff()` in `scene/main.js`, desktop path unchanged at k=1). Diff staged in working tree, **needs commit** |
+| 8 | Owner approval gate | pending | — | sign-off before Slice 3 (#5); bundle deferred visual-tuning calls (prop lighting, holo prominence, mobile card aesthetics) |
 
 ## Acceptance criteria → step
 
@@ -51,16 +51,37 @@ Blocked-by: #3 (DONE — merged via PR #10)
    class. `css3d.render(cssScene, camera)` runs after `composer.render()`. CSS
    for `.holo-card`/`#css3d` is in `v2.html`. The flat panel's layout/scroll/
    measure path is untouched.
-6. **Next = Step 7 (verify) + Step 6 finalize.** Step 6's holo freeze + opacity-
-   only card/panel cross-fade are already reduced-motion-safe; **Step 7** is the
-   remaining verification: `node --test` (13) + Playwright smoke, **including an
-   emulated `prefers-reduced-motion` render check** (confirm holo static / travel
-   loop preserved / card+panel still cross-fade) and a mobile-width pass (card
-   `CARD_SCALE` is fov-tuned for desktop; re-check at <768px). Then **Step 8**
-   (owner approval gate) — bundle the deferred tuning calls below. Keep Slice-1
-   invariants intact (see "Carry-forward invariants").
+6. **Steps 6 & 7 verification DONE this session** (see evidence block below). The
+   one remaining action before step 8: **commit the uncommitted mobile-card fix**
+   in `scene/main.js` (responsive `cardScale()`/`cardXOff()`), then open/refresh the
+   PR for #4 with the full `## Test plan`. Then **Step 8** (owner approval gate) —
+   bundle the deferred tuning calls below (prop lighting, holo prominence, and now
+   final mobile reveal-card aesthetics). Keep Slice-1 invariants intact.
 
-**Step 4 verification evidence (this session):** `node --test` → 13 pass; shader
+   **Suggested commit:** `fix: keep CSS3D reveal card on-screen + readable on narrow viewports`
+   covering only the `scene/main.js` diff (no debug hooks present — grep-verified clean).
+
+**Step 6+7 verification evidence (this session):** `node --test` → **13 pass**;
+`node --check scene/main.js` → OK; debug-hook grep on `scene/main.js`+`v2.html` →
+**clean**. Playwright smoke on `/v2.html` (desktop 1200/1280): **0 console
+errors/warnings**, all **8 GLBs 200**, full live path verified by driving real wheel
+scroll — checkpoint 00 INFO (flat crisp panel) → **TRAVERSING** (sniper reticle +
+GLTF outpost: antenna/tank/sandbags/barriers with contact shadows + **holo terminal
+cyan scanlines on dark glass backing**) → dock at next checkpoint (flat crisp panel,
+DoF blur on outpost). **CSS3D reveal card** captured mid-band (temp `window.__infoHold`
+hook, since removed — grep clean): at infoAmt 0.5 → card 0.98 / flat panel 0 (crisp
+phosphor card billboarded at the outpost). **Reduced-motion** (`emulateMedia
+reducedMotion:'reduce'`): 0 console errors, travel loop **preserved** (MODE
+TRAVERSING after scroll, no teleport), card+panel cross-fade still fires (card 0.98 /
+panel 0 mid-band), holo `uTime` frozen by code path (`holoT = reduce ? 0`).
+**Mobile pass (390×844):** flat reading panel fully responsive/crisp/scrollable
+(Slice-1 invariant holds); the reveal card was found **clipping off the right edge**
+→ fixed (see defect below) → re-verified `fitsWidth:true` (card 234px, x 138→372 in a
+390 viewport), full title readable, well-framed over the outpost. **Desktop
+regression check** (1280): card 370px, fits, 0 errors — `cardK()=1` keeps the
+original 0.04/+6 exactly.
+
+**Step 4 verification evidence (prior session):** `node --test` → 13 pass; shader
 **compiled with 0 console errors/warnings** (a compile failure logs a
 WebGLProgram error — none seen). Scene-graph probe confirmed **3 holo screens +
 3 dark backings**, `uTime` animating, `uOpacity`=1 in TRAVEL and **0 on dock**
@@ -152,6 +173,23 @@ crisp panel framed by the outpost") with the reading system untouched. The card 
 *transitional only* (visible solely in the `infoAmt` 0.28–0.74 band), so it never
 competes with reading. `CARD_SCALE=0.04` is fov-58-tuned for ~1:1 desktop crispness
 — **re-check at mobile width (step 7).**
+
+**CSS3D reveal card clipped off-screen on narrow (mobile) viewports — the
+`CARD_SCALE` re-check the plan flagged.** As anticipated in the DS5 amendment,
+`CARD_SCALE=0.04` (fov-58/desktop-tuned) failed at <768px. Two compounding causes:
+(a) the CSS3D projection grows with viewport *height*, so the same world-anchored
+card renders larger on a tall portrait phone; (b) the card is world-anchored at the
+outpost (`a.x + 6`), 6 units right of the dock centreline, which projects past the
+right edge once the frame is narrow. First attempt (shrink by aspect ratio alone)
+over-corrected — card became tiny *and* still clipped right. Fix that worked: a
+single width-driven factor `cardK() = min(1, innerWidth/1200)` driving **both** a
+floored scale (`0.04 * max(0.6, k)`) **and** a reseat toward centre
+(`xOff = 6 * max(0.35, k)`), applied at build and re-applied on `resize`. `k===1`
+on desktop reproduces the original `0.04` + `(a.x+6)` exactly, so the verified
+desktop path can't regress. Verified `fitsWidth:true` + readable at 390×844; desktop
+unchanged at 1280. **Final mobile aesthetics (exact size/seat) remain an owner-gate
+(step 8) visual call** — this fix makes it correct-and-readable, not necessarily
+final.
 
 ## Carry-forward invariants (from Slice 1 summary — do NOT regress)
 
