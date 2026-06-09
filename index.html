@@ -161,6 +161,16 @@
     letter-spacing:.4px; margin-bottom:14px; }
   .scroll-hint{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-4);
     margin-top:6px; }
+  /* Gate feedback (task 008): a deliberately absorbed stroke pulses the chrome
+     the reader is looking at, so eaten input reads as "hold" rather than "broken". */
+  .scroll-hint.nudge, .panel-head .lock.nudge{ animation: gate-nudge .38s ease; }
+  /* bob UP, never down: a downward translate on .panel-scroll's last child
+     extends the scrollable overflow, so contentMax would jitter while the
+     animation runs and the gate logic reads the jitter as real scrolling */
+  @keyframes gate-nudge{
+    0%,100%{ transform:none; filter:none; }
+    35%{ transform:translateY(-3px); filter:brightness(1.8); }
+  }
 
   /* ===== Rehomed content structures (Slice 3) — recon-themed chrome around
      verbatim copy. Everything scoped under .panel-body. ===== */
@@ -486,7 +496,7 @@
             <li>Developed an iOS application in Swift.</li>
           </ul>
         </div>
-        <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>
+        <p class="scroll-hint">end of intel — keep scrolling to traverse to the next checkpoint ▾</p>
       </div></div>
     </section>
 
@@ -603,7 +613,7 @@
           </p>
           <p class="project-links mono"><a href="https://github.com/shivamsbajpai/ToLetLife" target="_blank" rel="noopener">android →</a> <a href="https://github.com/shivamsbajpai/tolet_life_api" target="_blank" rel="noopener">api →</a></p>
         </div>
-        <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>
+        <p class="scroll-hint">end of intel — keep scrolling to traverse to the next checkpoint ▾</p>
       </div></div>
     </section>
 
@@ -651,7 +661,7 @@
             judgment, Tvash helps execute. <a href="https://github.com/claudeforssb" target="_blank" rel="noopener">@claudeforssb</a>
           </p>
         </div>
-        <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>
+        <p class="scroll-hint">end of intel — keep scrolling to traverse to the next checkpoint ▾</p>
       </div></div>
     </section>
 

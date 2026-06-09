@@ -4,7 +4,7 @@
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
 // real content (Slice 3). Outpost props render procedurally on first paint,
 // then lazy-swap to a cloned CC0 GLTF kit once loaded (Slice 2, DS2/DS3).
-import { initState, applyScroll, cameraFloat, modeOf, flyProgress, startFastTravel, tickAutoTravel, PHASE, MODE } from './state.js';
+import { initState, applyScroll, commitStroke, cameraFloat, modeOf, flyProgress, startFastTravel, tickAutoTravel, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -559,16 +559,14 @@ function initScene(renderer) {
   composer.addPass(bloom);
   composer.setSize(innerWidth, innerHeight);
 
-  /* --- input: wheel / keyboard / touch drive the optic state machine --- */
+  /* --- input: wheel / keyboard / touch drive the optic state machine ---
+     Two channels (task 008 / #23): live px deltas read the content
+     (applyScroll); whole STROKES drive friction and travel (commitStroke).
+     A stroke = one touch swipe, one wheel burst, or one keypress — grouped
+     here so the state machine stays pure. A gap = 3 strokes; pinned edges
+     and fresh arrivals absorb 2 (see scene/state.js header). --- */
   let mx = 0, my = 0, tmx = 0, tmy = 0, paused = false;
   let app = initState();
-  // Scroll px to traverse one checkpoint gap. The SAME scrubbed traversal under
-  // reduced-motion: the core travel→checkpoint→info loop stays visible there.
-  // Reduced-motion is honored below by damping *inertial* motion (tighter camera
-  // tracking + no parallax sway), not by teleporting between checkpoints — an
-  // earlier `reduce ? 1` collapsed a whole gap into one scroll notch, which read
-  // as "travel mode is gone."
-  const TRAVEL_LEN = 2400;
 
   function curContentMax() {
     const panel = panels[app.cp]; if (!panel) return 0;
@@ -576,43 +574,110 @@ function initScene(renderer) {
     return Math.max(0, inner.scrollHeight - body.clientHeight);
   }
   const fcIsOpen = () => document.getElementById('fc').classList.contains('open');
-  const scroll = (d) => {
-    if (fcIsOpen()) return;                     // palette captures input while open (DT4)
-    if (intro.active) { endIntro(); return; }   // an impatient scroll = skip (DF4)
-    app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length, TRAVEL_LEN);
-    // On arrival, activate the panel synchronously so its contentMax is measurable
-    // (not 0 during the info fade-in) — otherwise the next scroll would skip the
-    // checkpoint. Then clamp readScroll (handles the cancel sentinel) and re-apply.
-    if (app.phase === PHASE.READING) {
-      setActivePanel(app.cp);
-      const m = curContentMax(); if (app.readScroll > m) app.readScroll = m;
-      setActivePanel(app.cp);
-    }
+
+  const COMMIT_PX = 48;        // accumulated |Δ| that commits a stroke (mid-swipe, for immediate feedback)
+  const WHEEL_QUIET_MS = 250;  // wheel burst ends after this much silence
+  const WHEEL_REARM_PX = 800;  // …or re-arms every chunk of continuous spinning,
+                               // so an unbroken trackpad glide still crosses a gap
+                               // (~2400 px, the old TRAVEL_LEN feel) instead of
+                               // committing once and going dead
+  const KEY_COMMIT_MS = 160;   // held-key repeat must not machine-gun strokes
+
+  const MOVE_SLOP = 3;         // cumulative px of panel movement below which a stroke is
+                               // "unmoved" — contentMax jitters a few px (see PIN_SLOP in
+                               // state.js), and that jitter must not re-arm the edge gate
+  let strokeSum = 0, strokeStartRs = null, strokeCommitted = false, strokeCommitSum = 0;
+  const strokeMoved = () => strokeStartRs != null && Math.abs(app.readScroll - strokeStartRs) > MOVE_SLOP;
+
+  // On arrival, activate the panel synchronously so its contentMax is measurable
+  // (not 0 during the info fade-in) — otherwise the next stroke would skip the
+  // checkpoint. Then clamp readScroll (handles the cancel/land sentinels) and re-apply.
+  const syncPanel = () => {
+    if (app.phase !== PHASE.READING) return;
+    setActivePanel(app.cp);
+    const m = curContentMax(); if (app.readScroll > m) app.readScroll = m;
+    setActivePanel(app.cp);
+  };
+  // A deliberately absorbed stroke with zero feedback reads as "broken" (D5):
+  // acknowledge it on the chrome the reader is looking at — the end-of-intel
+  // hint for forward pushes, the TARGET ACQUIRED chip for upward ones.
+  const nudge = (dir) => {
+    const panel = panels[app.cp]; if (!panel) return;
+    const el = panel.querySelector(dir > 0 ? '.scroll-hint' : '.lock');
+    if (!el) return;
+    el.classList.remove('nudge'); void el.offsetWidth; el.classList.add('nudge');
   };
 
-  addEventListener('wheel', (e) => { e.preventDefault(); scroll(e.deltaY); }, { passive: false });
+  const commitNow = () => {
+    if (!strokeSum) return;
+    strokeCommitted = true; strokeCommitSum = strokeSum;
+    const prev = app;
+    app = commitStroke(app, Math.sign(strokeSum), strokeMoved(), curContentMax(), CHECKPOINTS.length);
+    if (app.phase === PHASE.READING && prev.phase === PHASE.READING && !strokeMoved()) {
+      if (app.settle < prev.settle) nudge(-1);                  // settling: the header chip is what's on screen
+      else if (app.arm < prev.arm) nudge(Math.sign(strokeSum)); // edge gate: hint (▾) or chip (▴)
+    }
+    syncPanel();
+  };
+  const feed = (d, autoCommit = true) => {
+    if (fcIsOpen()) return;                     // palette captures input while open (DT4)
+    if (intro.active) { endIntro(); return; }   // an impatient scroll = skip (DF4)
+    if (strokeStartRs == null) strokeStartRs = app.readScroll;
+    strokeSum += d;
+    // an already-absorbed stroke stays absorbed: its remaining deltas must not
+    // leak into the panel once the commit drained the settle/arm counter
+    if (strokeCommitted && !strokeMoved()) return;
+    app = applyScroll(app, d, curContentMax());
+    if (autoCommit && !strokeCommitted && Math.abs(strokeSum) >= COMMIT_PX) commitNow();
+    syncPanel();
+  };
+  const strokeEnd = () => {
+    if (!strokeCommitted && (strokeMoved() || Math.abs(strokeSum) >= COMMIT_PX)) commitNow();
+    strokeSum = 0; strokeStartRs = null; strokeCommitted = false; strokeCommitSum = 0;
+  };
 
+  // read-only state snapshot for e2e specs / live diagnosis (never mutated through)
+  window.__optic = () => ({ ...app });
+
+  let wheelTimer = 0;
+  addEventListener('wheel', (e) => {
+    e.preventDefault();
+    feed(e.deltaY);
+    if (strokeCommitted && Math.abs(strokeSum - strokeCommitSum) >= WHEEL_REARM_PX) strokeEnd();
+    clearTimeout(wheelTimer); wheelTimer = setTimeout(strokeEnd, WHEEL_QUIET_MS);
+  }, { passive: false });
+
+  let lastKeyStroke = 0;
   addEventListener('keydown', (e) => {
     if (fcIsOpen()) return;   // fire control owns the keyboard while open (its own handler below)
     if (intro.active) { if (e.key === 'Enter') { e.preventDefault(); endIntro(); } return; }
     const body = panels[app.cp]?.querySelector('.panel-body');
     const page = (body ? body.clientHeight : 600) * 0.8, step = 90;
-    if (e.key === 'Home') { e.preventDefault(); app = { ...app, readScroll: 0 }; return; }
-    if (e.key === 'End') { e.preventDefault(); app = { ...app, readScroll: curContentMax() }; return; }
+    if (e.key === 'Home') { e.preventDefault(); app = { ...app, readScroll: 0 }; syncPanel(); return; }
+    if (e.key === 'End') { e.preventDefault(); app = { ...app, readScroll: curContentMax() }; syncPanel(); return; }
     let d = 0;
     if (e.key === 'ArrowDown') d = step; else if (e.key === 'ArrowUp') d = -step;
     else if (e.key === ' ' || e.key === 'PageDown') d = page; else if (e.key === 'PageUp') d = -page;
     else return;
-    e.preventDefault(); scroll(d);
+    e.preventDefault();
+    // each press is one stroke; live reading still tracks held-key repeat, but
+    // commits (friction taps / travel steps) are rate-capped
+    feed(d, false);
+    const now = performance.now();
+    if (now - lastKeyStroke >= KEY_COMMIT_MS) { lastKeyStroke = now; strokeEnd(); }
+    else { strokeSum = 0; strokeStartRs = null; strokeCommitted = false; strokeCommitSum = 0; }   // repeat too fast: live delta only, no stroke
   });
 
   let touchY = null;
-  addEventListener('touchstart', (e) => { touchY = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchstart', (e) => {
+    clearTimeout(wheelTimer); strokeEnd();      // flush any pending wheel burst
+    touchY = e.touches[0].clientY;
+  }, { passive: true });
   addEventListener('touchmove', (e) => {
     if (touchY == null) return;
-    const y = e.touches[0].clientY; scroll((touchY - y) * 1.5); touchY = y; e.preventDefault();
+    const y = e.touches[0].clientY; feed((touchY - y) * 1.5); touchY = y; e.preventDefault();
   }, { passive: false });
-  addEventListener('touchend', () => { touchY = null; });
+  addEventListener('touchend', () => { touchY = null; strokeEnd(); });
 
   /* --- Slice 5: fast-travel — nav strip + FIRE CONTROL palette (DT1–DT5) --- */
   const fcEl = document.getElementById('fc'), fcInput = document.getElementById('fcInput'),
