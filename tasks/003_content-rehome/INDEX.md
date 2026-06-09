@@ -1,6 +1,6 @@
 # Slice 3 — verbatim content rehome into 5 checkpoints · INDEX (resume protocol)
 
-Task: rehome all real content into the five checkpoints · **Closes [#5]** · parent epic [#2]
+Task: rehome all real content into the five checkpoints · **Closes [#5]** · parent epic [#2] · **DONE — merged via [PR-14]**, retrospective in [`summary.md`](summary.md)
 Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md)
 Branch: `task/5-content-rehome` · Preview: `python3 -m http.server 8099` → `/v2.html`
 Blocked-by: #3, #4 (both DONE — merged via [PR-10], [PR-12])
@@ -16,7 +16,7 @@ Blocked-by: #3, #4 (both DONE — merged via [PR-10], [PR-12])
 | 5 | Seam-2 content-floor test (DC6) | DONE ✅ | f894abd | 15 cases on raw file bytes; suite now 28 tests |
 | 6 | Verbatim audit (in test) | DONE ✅ | f894abd | copy extracted from `index.html`, asserted unchanged in `v2.html` |
 | 7 | Local verification | DONE ✅ | — | see evidence block; screenshots in [`evidence/`](evidence/) |
-| 8 | PR + owner gate | in_progress | — | merge authorized for this session |
+| 8 | PR + owner gate | DONE ✅ | 901854b | [PR-14] merged (owner-authorized), #5 auto-closed |
 
 ## Acceptance criteria → step
 
@@ -29,17 +29,11 @@ Blocked-by: #3, #4 (both DONE — merged via [PR-10], [PR-12])
 
 ## Resume sequence for next session
 
-1. `cd ~/projects/personal_website && git checkout task/5-content-rehome`
-2. Pre-flight: `node --test` (13 state tests must pass; content tests once step
-   5 lands); `python3 -m http.server 8099` → `/v2.html` (port may already be
-   served by a leftover server — check `lsof -iTCP:8099` and reuse it).
-3. Start at the first non-DONE step above. Copy sources in `index.html`:
-   hero `634–686` · experience `688–782` · work `784–916` · about `918–965` ·
-   footer/contact `968–977`.
-4. Browser verification gotcha: bust the **page URL** (`v2.html?b=N`) — the
-   cached HTML pins the old module URL (see slice-2 INDEX defects).
-5. Verify transitional UI with a **live per-frame rAF trace**, never a frozen
-   snapshot (slice-2 lesson — frozen choreography hides camera-motion bugs).
+**TASK COMPLETE — nothing to resume.** [PR-14] merged to `master` (`901854b`),
+#5 auto-closed, retrospective in [`summary.md`](summary.md). A fresh session
+should move to **Slice 4 ([#6], cinematic fly-in loader)** — start at
+`tasks/004_<slug>/`. Carry the gotchas from `summary.md` (zero-budget
+checkpoints; page-URL cache-bust; live rAF traces for transitional UI).
 
 ## Plan defects observed
 
@@ -103,3 +97,4 @@ surface · DC6 Seam-2 test reads raw file bytes.
 [#9]: https://github.com/shivamsbajpai/personal_website/issues/9
 [PR-10]: https://github.com/shivamsbajpai/personal_website/pull/10
 [PR-12]: https://github.com/shivamsbajpai/personal_website/pull/12
+[PR-14]: https://github.com/shivamsbajpai/personal_website/pull/14
