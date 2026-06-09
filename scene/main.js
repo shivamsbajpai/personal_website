@@ -390,7 +390,17 @@ function initScene(renderer) {
   document.body.appendChild(css3d.domElement);
   infoLayer.style.transition = 'none';   // opacity is now driven per-frame from infoAmt (see loop)
   const cssScene = new THREE.Scene();
-  const CARD_SCALE = 0.04;   // ~1:1 css-px → screen-px at the dock distance (fov 58); billboarded so text stays crisp
+  // ~1:1 css-px → screen-px at the dock distance (fov 58); billboarded so text stays crisp.
+  // 0.04 is desktop-tuned; on a narrow (portrait/mobile) viewport the same world-anchored
+  // card (a) projects past the right edge because it sits +6 off the centreline and (b)
+  // would clip the screen width. So below the desktop reference we both shrink the card
+  // (width-driven, floored so text stays readable) and reseat it toward the camera
+  // centreline. `k===1` on desktop keeps the original 0.04 + (a.x+6) exactly — no
+  // regression to the already-verified desktop path.
+  const CARD_REF_W = 1200;                                   // width at which 0.04 reads 1:1
+  const cardK = () => Math.min(1, innerWidth / CARD_REF_W);  // 1 on desktop, <1 on mobile
+  const cardScale = () => 0.04 * Math.max(0.6, cardK());     // floor 0.6 → never smaller than 0.024
+  const cardXOff = () => 6 * Math.max(0.35, cardK());        // pull toward centreline on narrow screens
   const cardTitle = (cp) => { const m = cp.html.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/); return (m ? m[1] : cp.label).replace(/<[^>]+>/g, '').trim(); };
   const cards = anchors.map((a, i) => {
     const cp = CHECKPOINTS[i];
@@ -401,10 +411,10 @@ function initScene(renderer) {
       + `<div class="hc-title">${cardTitle(cp)}</div>`
       + `<div class="hc-foot">DECRYPTING INTEL ▸ STAND BY</div>`;
     const obj = new CSS3DObject(el);
-    obj.scale.setScalar(CARD_SCALE);
-    obj.position.set(a.x + 6, a.y + 6.7, a.z + 8);   // co-located with the holo screen
+    obj.scale.setScalar(cardScale());
+    obj.position.set(a.x + cardXOff(), a.y + 6.7, a.z + 8);   // co-located with the holo screen (reseated toward centre on mobile)
     cssScene.add(obj);
-    return { el, obj };
+    return { el, obj, a };
   });
 
   /* --- GLTF outpost kit: lazy-load after first paint, then swap the
@@ -573,6 +583,8 @@ function initScene(renderer) {
     camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight);
     css3d.setSize(innerWidth, innerHeight);
+    const cs = cardScale(), xo = cardXOff();   // keep the reveal card on-screen + readable across aspect changes
+    cards.forEach(c => { c.obj.scale.setScalar(cs); c.obj.position.x = c.a.x + xo; });
   });
   document.addEventListener('visibilitychange', () => { paused = document.hidden; if (!paused) requestAnimationFrame(loop); });
 
