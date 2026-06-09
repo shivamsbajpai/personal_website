@@ -9,7 +9,7 @@ Blocked-by: #3 (DONE — merged via PR #10)
 
 | # | Step | State | Commit | Notes |
 |---|------|-------|--------|-------|
-| 1 | Asset sourcing + license vetting (DS1) | in_progress | — | researching CC0 kits; **owner picks style before committing binaries** |
+| 1 | Asset sourcing + license vetting (DS1) | DONE ✅ | 93930ff | owner chose Poly Pizza assembly; 8 Quaternius CC0 GLBs in `assets/outpost/`, all verified Public Domain (CC0), provenance in `assets/CREDITS.md` |
 | 2 | GLTFLoader + lazy-load harness (DS2) | pending | — | load after first paint; swap procedural→GLTF on load |
 | 3 | Per-checkpoint outpost composition (DS3) | pending | — | clone kit per pad, camera-facing arc, shadows |
 | 4 | WebGL holo-screen on a prop (DS4) | pending | — | scanline/flicker ShaderMaterial, visible in TRAVEL |
@@ -30,12 +30,27 @@ Blocked-by: #3 (DONE — merged via PR #10)
 
 1. `cd ~/projects/personal_website && git checkout task/4-gltf-outpost-surface`
 2. Pre-flight: `node --test` (expect 13 pass); `python3 -m http.server 8099` → `/v2.html`.
-3. **Step 1 is the gate:** if the CC0 kit is not yet chosen, present researched
-   candidates to the owner and get a style pick before committing any `.glb`.
-   License MUST be CC0 — record in `/assets/CREDITS.md`.
-4. Then proceed steps 2→8 in order. Keep the Slice 1 invariants intact (see
-   "Carry-forward invariants" below) — they are easy to regress when swapping the
-   prop/panel layer.
+3. **Step 1 DONE** — 8 Quaternius CC0 GLBs in `assets/outpost/` (`tank`,
+   `sandbags-trench`, `sandbags-small`, `crate`, `crate-pickup`, `antenna`,
+   `barrier-large`, `barrier-fixed`), licenses in `assets/CREDITS.md`.
+4. **Next = Step 2 (GLTFLoader + lazy-load swap).** Plan, ready to implement:
+   - Import `GLTFLoader` from `three/addons/loaders/GLTFLoader.js` (import map
+     already maps `three/addons/`).
+   - Keep the procedural `buildOutpost()` (`scene/main.js:287`) as the first-paint
+     stand-in **and** graceful fallback (DS2: never block the loop; failed load →
+     keep procedural, never a blank pad).
+   - After first paint (post-`booted`/`requestIdleCallback`), load the 8 GLBs.
+     For each: compute bounding box, **normalize** to a target size, recenter so
+     `min.y → 0` (sits on the pad), set `castShadow`/`receiveShadow` on every mesh.
+   - Build a GLTF outpost group mirroring the arc layout in `buildOutpost`
+     (tank −7,−2 · crates +9,−3 · sandbags +2,+6 · antenna −11,−11 · barrier
+     +12,+5), seeded per-cp variation (use `hash`, no `Math.random`). Swap:
+     remove procedural `camp` groups, add GLTF ones at the same anchors (scale ~1.5).
+   - Verify in browser: 0 console errors, desert usable before models finish,
+     8 models load + compose, shadows + sunny look preserved.
+5. Then steps 3→8. Holo (DS4) + CSS3D panel (DS5) are a **distinct sub-system** —
+   tackle after the outpost swap is verified. Keep the Slice 1 invariants intact
+   (see "Carry-forward invariants").
 
 ## Plan defects observed
 
