@@ -4,7 +4,7 @@
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
 // real content (Slice 3). Outpost props render procedurally on first paint,
 // then lazy-swap to a cloned CC0 GLTF kit once loaded (Slice 2, DS2/DS3).
-import { initState, applyScroll, cameraFloat, modeOf, flyProgress, PHASE, MODE } from './state.js';
+import { initState, applyScroll, cameraFloat, modeOf, flyProgress, startFastTravel, tickAutoTravel, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -544,7 +544,9 @@ function initScene(renderer) {
     const body = panel.querySelector('.panel-body'), inner = panel.querySelector('.panel-scroll');
     return Math.max(0, inner.scrollHeight - body.clientHeight);
   }
+  const fcIsOpen = () => document.getElementById('fc').classList.contains('open');
   const scroll = (d) => {
+    if (fcIsOpen()) return;                     // palette captures input while open (DT4)
     if (intro.active) { endIntro(); return; }   // an impatient scroll = skip (DF4)
     app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length, TRAVEL_LEN);
     // On arrival, activate the panel synchronously so its contentMax is measurable
@@ -560,6 +562,7 @@ function initScene(renderer) {
   addEventListener('wheel', (e) => { e.preventDefault(); scroll(e.deltaY); }, { passive: false });
 
   addEventListener('keydown', (e) => {
+    if (fcIsOpen()) return;   // fire control owns the keyboard while open (its own handler below)
     if (intro.active) { if (e.key === 'Enter') { e.preventDefault(); endIntro(); } return; }
     const body = panels[app.cp]?.querySelector('.panel-body');
     const page = (body ? body.clientHeight : 600) * 0.8, step = 90;
@@ -579,6 +582,91 @@ function initScene(renderer) {
     const y = e.touches[0].clientY; scroll((touchY - y) * 1.5); touchY = y; e.preventDefault();
   }, { passive: false });
   addEventListener('touchend', () => { touchY = null; });
+
+  /* --- Slice 5: fast-travel — nav strip + FIRE CONTROL palette (DT1–DT5) --- */
+  const fcEl = document.getElementById('fc'), fcInput = document.getElementById('fcInput'),
+        fcList = document.getElementById('fcList'), toastEl = document.getElementById('toast');
+  let toastT = 0;
+  const toast = (msg) => {
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  };
+  const EMAIL = 'ssbajpai9@gmail.com';
+  async function copyEmail() {
+    try { await navigator.clipboard.writeText(EMAIL); }
+    catch {
+      const ta = document.createElement('textarea');
+      ta.value = EMAIL; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+    }
+    toast('EMAIL COPIED — ' + EMAIL);
+  }
+  function fastTravelTo(i) {
+    if (intro.active) endIntro();   // navigation during the fly-in acts as a skip first (slice-4 rule)
+    app = startFastTravel(app, i, CHECKPOINTS.length);
+  }
+  const panelTitle = (i) => (panels[i]?.querySelector('.panel-body h1, .panel-body h2')?.textContent
+    ?? '').replace(/\s+/g, ' ').trim();
+  const FC_ITEMS = [
+    ...CHECKPOINTS.map((cp, i) => ({ k: cp.label, label: panelTitle(i), hint: 'fast travel', run: () => fastTravelTo(i) })),
+    { k: 'OPEN', label: 'Résumé (PDF)', hint: '↗', run: () => open('./latest_resume.pdf', '_blank', 'noopener') },
+    { k: 'OPEN', label: 'GitHub', hint: '↗', run: () => open('https://github.com/shivamsbajpai', '_blank', 'noopener') },
+    { k: 'OPEN', label: 'lomasa-ai', hint: '↗', run: () => open('https://github.com/lomasa-ai', '_blank', 'noopener') },
+    { k: 'COPY', label: 'Copy email', hint: EMAIL, run: copyEmail },
+  ];
+  let fcSel = 0, fcShown = [], fcPrevFocus = null;
+  function fcRender(q) {
+    const needle = q.trim().toLowerCase();
+    // Rank key-field hits ("02 · WORK") above title-text hits — otherwise
+    // typing "work" selects Overwatch ("I build things that WORK…") first.
+    const score = (it) => (it.k.toLowerCase().includes(needle) ? 0 : 1);
+    fcShown = FC_ITEMS.filter((it) => !needle || (it.k + ' ' + it.label).toLowerCase().includes(needle))
+      .sort((x, y) => score(x) - score(y));
+    fcSel = Math.max(0, Math.min(fcSel, fcShown.length - 1));
+    fcList.innerHTML = fcShown.length
+      ? fcShown.map((it, i) => `<div class="fc-item${i === fcSel ? ' sel' : ''}" role="option" aria-selected="${i === fcSel}" data-i="${i}">`
+          + `<span class="k">${it.k}</span><span>${it.label}</span><span class="hint">${it.hint}</span></div>`).join('')
+      : '<div class="fc-empty">no matching targets</div>';
+  }
+  function fcOpenPal() {
+    if (intro.active) endIntro();
+    fcPrevFocus = document.activeElement;
+    fcSel = 0; fcInput.value = ''; fcRender('');
+    fcEl.classList.add('open'); fcInput.focus();
+  }
+  function fcClose() {
+    fcEl.classList.remove('open');
+    if (fcPrevFocus?.focus) fcPrevFocus.focus();
+  }
+  function fcActivate() {
+    const it = fcShown[fcSel]; if (!it) return;
+    fcClose(); it.run();
+  }
+  document.getElementById('fcOpen').addEventListener('click', () => fcIsOpen() ? fcClose() : fcOpenPal());
+  fcEl.addEventListener('mousedown', (e) => { if (e.target === fcEl) fcClose(); });   // backdrop click
+  fcList.addEventListener('click', (e) => {
+    const row = e.target.closest('.fc-item'); if (!row) return;
+    fcSel = +row.dataset.i; fcActivate();
+  });
+  fcInput.addEventListener('input', () => { fcSel = 0; fcRender(fcInput.value); });
+  addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault(); fcIsOpen() ? fcClose() : fcOpenPal(); return;
+    }
+    if (!fcIsOpen()) return;
+    if (e.key === 'Escape') { e.preventDefault(); fcClose(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); fcSel = (fcSel + 1) % fcShown.length; fcRender(fcInput.value); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); fcSel = (fcSel - 1 + fcShown.length) % fcShown.length; fcRender(fcInput.value); }
+    else if (e.key === 'Enter') { e.preventDefault(); fcActivate(); }
+  });
+  const navBtns = [...document.querySelectorAll('.topbar .cp-jump')];
+  navBtns.forEach((b) => b.addEventListener('click', () => fastTravelTo(+b.dataset.cp)));
+  let navCur = -1;
+  function navHighlight() {
+    if (app.cp === navCur) return;
+    navCur = app.cp;
+    navBtns.forEach((b, i) => b.classList.toggle('cur', i === navCur));
+  }
 
   if (fine) addEventListener('mousemove', (e) => {
     tmx = (e.clientX / innerWidth - .5) * 2; tmy = (e.clientY / innerHeight - .5) * 2;
@@ -616,9 +704,18 @@ function initScene(renderer) {
   }
 
   const sunOffset = sunDir.clone().multiplyScalar(380);
+  let lastT = 0;
   function loop(t) {
     if (paused) return;
+    const dtMs = lastT ? Math.min(120, (t || 0) - lastT) : 16; lastT = t || 0;
     if (app.phase === PHASE.READING) { const m = curContentMax(); if (app.readScroll > m) app.readScroll = m; }
+    // Fast-travel: time-tick the auto leg; on arrival activate the panel
+    // synchronously so its contentMax is measurable (same rule as scroll()).
+    if (app.auto) {
+      app = tickAutoTravel(app, dtMs);
+      if (app.phase === PHASE.READING) setActivePanel(app.cp);
+    }
+    navHighlight();
 
     const md = modeOf(app);
     if (intro.active) {

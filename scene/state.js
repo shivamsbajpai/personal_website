@@ -38,6 +38,7 @@ export function initState() {
  * @param {number} travelLen  px of scroll to traverse one checkpoint gap
  */
 export function applyScroll(state, delta, contentMax, count, travelLen) {
+  if (state.auto) return state;   // a deliberate fast-travel completes; scroll is ignored mid-flight (DT1)
   if (state.phase === PHASE.READING) {
     const ns = clamp(state.readScroll + delta, 0, Math.max(0, contentMax));
     if (ns !== state.readScroll) return { ...state, readScroll: ns };
@@ -93,4 +94,40 @@ export function modeOf(state) {
 export function flyProgress(timeFrac, assetFrac) {
   const t = clamp(timeFrac, 0, 1), a = clamp(assetFrac, 0, 1);
   return Math.min(easeInOut(t), 0.85 + 0.15 * a);
+}
+
+/* ---------------------------------------------------------------------------
+   Slice 5 — fast-travel (pure, DT1). A deliberate jump to any checkpoint:
+   startFastTravel() begins an `auto` TRAVELLING leg from the current camera
+   float toward the (clamped) target; the render loop time-ticks it with
+   tickAutoTravel(). It reuses the whole TRAVELLING pipeline (vantage lerp,
+   HUD, holo fades, dock-into-INFO), and lands at the TOP of the target's
+   content — correct for navigation in either direction (the read-up-on-
+   reverse rule protects scroll-through, not deliberate jumps). While `auto`
+   is set, applyScroll ignores input (see guard above). */
+
+/**
+ * @param {object} state  current state
+ * @param {number} target checkpoint index (clamped to [0, count-1])
+ * @param {number} count  number of checkpoints
+ * @returns a new auto-TRAVELLING state, or the input state if already docked there
+ */
+export function startFastTravel(state, target, count) {
+  const to = clamp(Math.round(target), 0, count - 1);
+  const from = cameraFloat(state);
+  if (state.phase === PHASE.READING && state.cp === to) return state;   // already docked there
+  return { phase: PHASE.TRAVELLING, cp: state.cp, readScroll: 0, from, to, travelT: 0, auto: true };
+}
+
+/**
+ * Advance an auto leg by dt ms. Duration scales sub-linearly with distance
+ * (500ms + 450ms per gap), so cross-map jumps stay brisk.
+ * No-op for non-auto states.
+ */
+export function tickAutoTravel(state, dt) {
+  if (!state.auto || state.phase !== PHASE.TRAVELLING) return state;
+  const durMs = 500 + 450 * Math.abs(state.to - state.from);
+  const t = state.travelT + dt / Math.max(1, durMs);
+  if (t >= 1) return { phase: PHASE.READING, cp: state.to, readScroll: 0, travelT: 0, from: state.to, to: state.to };
+  return { ...state, travelT: t };
 }
