@@ -1,0 +1,11 @@
+# dev tooling (never committed; the deployed site is the checked-in static bundle)
+node_modules/
+package-lock.json
+test-results/
+playwright-report/
+
+# personal scratch space (pre-issue drafts, local notes)
+.scratch/
+
+# OS noise
+.DS_Store
