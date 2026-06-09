@@ -3,63 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shivam Som Bajpai</title>
-<meta name="description" content="Backend &amp; platform engineer and full-stack builder. I ship production systems at scale and build my own agritech, AI, and developer tools. Portfolio of Shivam Som Bajpai.">
+<title>Shivam Som Bajpai — Backend &amp; Platform Engineer</title>
+<meta name="description" content="Backend &amp; platform engineer and full-stack builder. I ship multi-cloud infrastructure, identity, and security for enterprise SaaS at scale — and build AI-agent tooling, mobile apps, and developer tools on the side.">
 <meta name="author" content="Shivam Som Bajpai">
-<meta name="theme-color" content="#08090a">
+<meta name="theme-color" content="#07080a">
 
 <link rel="canonical" href="https://shivambajpai.com">
 
 <!-- Open Graph -->
-<meta property="og:title" content="Shivam Som Bajpai">
-<meta property="og:description" content="Backend &amp; platform engineer and full-stack builder. I ship production systems at scale and build my own agritech, AI, and developer tools. Portfolio of Shivam Som Bajpai.">
+<meta property="og:title" content="Shivam Som Bajpai — Backend &amp; Platform Engineer">
+<meta property="og:description" content="I ship multi-cloud infrastructure, identity, and security for enterprise SaaS at scale — and build AI-agent tooling, mobile apps, and developer tools on the side.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shivambajpai.com">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Shivam Som Bajpai">
-<meta name="twitter:description" content="Backend &amp; platform engineer and full-stack builder. I ship production systems at scale and build my own agritech, AI, and developer tools. Portfolio of Shivam Som Bajpai.">
+<meta name="twitter:title" content="Shivam Som Bajpai — Backend &amp; Platform Engineer">
+<meta name="twitter:description" content="I ship multi-cloud infrastructure, identity, and security for enterprise SaaS at scale — and build AI-agent tooling, mobile apps, and developer tools on the side.">
 
 <!-- Inline SVG favicon -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308090a'/%3E%3Ctext x='16' y='22' font-family='Inter,sans-serif' font-size='17' font-weight='600' text-anchor='middle' fill='%237170ff'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23a78bfa'/%3E%3Cstop offset='.5' stop-color='%237170ff'/%3E%3Cstop offset='1' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%2307080a'/%3E%3Ctext x='16' y='22' font-family='Inter,sans-serif' font-size='17' font-weight='700' text-anchor='middle' fill='url(%23g)'%3ES%3C/text%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    /* Linear-inspired surfaces */
-    --bg: #08090a;
-    --panel: #0f1011;
-    --surface: #191a1b;
-    --surface-2: #28282c;
+    /* Surfaces */
+    --bg: #07080a;
+    --bg-2: #0b0c10;
+    --panel: #0f1014;
+    --surface: #16171c;
+    --surface-2: #1d1f26;
 
     /* Text */
-    --text: #f7f8f8;
-    --text-2: #d0d6e0;
-    --text-3: #8a8f98;
-    --text-4: #62666d;
+    --text: #f6f7fb;
+    --text-2: #c8ccd8;
+    --text-3: #8b90a0;
+    --text-4: #5e6270;
 
-    /* Brand indigo-violet — the only chromatic color */
-    --brand: #5e6ad2;
-    --accent: #7170ff;
-    --accent-hover: #828fff;
-    --green: #10b981;
+    /* Vivid brand spectrum — violet → indigo → cyan, with a magenta pop */
+    --violet: #a78bfa;
+    --indigo: #7170ff;
+    --indigo-deep: #5b5bf0;
+    --cyan: #22d3ee;
+    --magenta: #ff6ec7;
+    --green: #34d399;
+
+    --grad: linear-gradient(105deg, #b69cff 0%, #7170ff 42%, #22d3ee 100%);
+    --grad-soft: linear-gradient(105deg, rgba(167,139,250,0.16), rgba(113,112,255,0.12), rgba(34,211,238,0.12));
+    --grad-magenta: linear-gradient(105deg, #ff6ec7, #b69cff 60%, #7170ff);
 
     /* Borders */
-    --border: rgba(255, 255, 255, 0.08);
-    --border-subtle: rgba(255, 255, 255, 0.05);
-    --border-solid: #23252a;
+    --border: rgba(255, 255, 255, 0.09);
+    --border-subtle: rgba(255, 255, 255, 0.055);
+    --card: rgba(255, 255, 255, 0.022);
+    --card-hover: rgba(255, 255, 255, 0.045);
 
-    --card: rgba(255, 255, 255, 0.02);
-    --card-hover: rgba(255, 255, 255, 0.04);
-    --max: 720px;
+    --max: 1080px;
+    --reading: 760px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
   body {
     font-family: 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -69,347 +76,463 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
-  ::selection { background: rgba(113, 112, 255, 0.3); color: #fff; }
+  ::selection { background: rgba(113, 112, 255, 0.35); color: #fff; }
 
-  a { color: var(--accent); text-decoration: none; transition: color 0.15s, opacity 0.15s; }
-  a:hover { color: var(--accent-hover); }
+  a { color: var(--violet); text-decoration: none; transition: color .15s, opacity .15s; }
+  a:hover { color: #c7b6ff; }
 
-  .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+  .display { font-family: 'Space Grotesk', 'Inter', sans-serif; }
+  .mono { font-family: ui-monospace, 'SF Mono', 'Berkeley Mono', Menlo, monospace; }
 
-  mono, .mono { font-family: ui-monospace, 'SF Mono', 'Berkeley Mono', Menlo, monospace; }
+  .gradient-text {
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 28px; }
+  .reading { max-width: var(--reading); }
+
+  /* ---- Animated gradient-mesh background ---- */
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none;
+    background: var(--bg);
+  }
+  .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(90px); opacity: 0.5; will-change: transform;
+  }
+  .blob.b1 { width: 620px; height: 620px; top: -180px; left: -120px;
+    background: radial-gradient(circle, #6d5cff 0%, transparent 70%); animation: drift1 22s ease-in-out infinite; }
+  .blob.b2 { width: 560px; height: 560px; top: 4%; right: -160px;
+    background: radial-gradient(circle, #22d3ee 0%, transparent 70%); opacity: .32; animation: drift2 26s ease-in-out infinite; }
+  .blob.b3 { width: 520px; height: 520px; top: 52%; left: 38%;
+    background: radial-gradient(circle, #ff6ec7 0%, transparent 70%); opacity: .26; animation: drift3 30s ease-in-out infinite; }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 75%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 75%);
+  }
+  @keyframes drift1 { 0%,100%{ transform: translate(0,0) scale(1);} 50%{ transform: translate(80px,60px) scale(1.12);} }
+  @keyframes drift2 { 0%,100%{ transform: translate(0,0) scale(1);} 50%{ transform: translate(-70px,40px) scale(1.08);} }
+  @keyframes drift3 { 0%,100%{ transform: translate(0,0) scale(1);} 50%{ transform: translate(40px,-60px) scale(1.15);} }
 
   /* Skip link */
   .skip-link {
     position: absolute; left: 8px; top: -48px; z-index: 200;
     padding: 8px 14px; font-size: 12px; background: var(--surface);
-    border: 1px solid var(--brand); border-radius: 6px; color: var(--text);
-    transition: top 0.2s;
+    border: 1px solid var(--indigo); border-radius: 8px; color: var(--text); transition: top .2s;
   }
   .skip-link:focus { top: 8px; }
 
-  /* Sticky nav */
+  /* ---- Nav ---- */
   .site-nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(8, 9, 10, 0.72);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    background: rgba(7, 8, 10, 0.6);
+    backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
     border-bottom: 1px solid var(--border-subtle);
   }
   .nav-inner {
-    max-width: var(--max); margin: 0 auto; padding: 14px 24px;
-    display: flex; align-items: center; gap: 24px;
+    max-width: var(--max); margin: 0 auto; padding: 14px 28px;
+    display: flex; align-items: center; gap: 26px;
   }
   .nav-brand {
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
     font-size: 13px; letter-spacing: -0.2px; color: var(--text);
-    margin-right: auto; display: flex; align-items: center; gap: 8px;
+    margin-right: auto; display: flex; align-items: center; gap: 9px;
   }
   .nav-brand .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 8px rgba(113,112,255,0.7);
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--grad); box-shadow: 0 0 12px rgba(113,112,255,0.8);
   }
+  .nav-links { display: flex; align-items: center; gap: 22px; }
   .site-nav a:not(.nav-cta) {
-    font-size: 13px; font-weight: 510; color: var(--text-3);
-    transition: color 0.15s;
+    font-size: 13px; font-weight: 520; color: var(--text-3); transition: color .15s;
   }
   .site-nav a:not(.nav-cta):hover { color: var(--text); }
   .nav-cta {
-    font-size: 13px; font-weight: 510; color: #fff !important;
-    background: var(--brand); padding: 6px 14px; border-radius: 6px;
-    transition: background 0.15s;
+    font-size: 13px; font-weight: 560; color: #fff !important;
+    background: var(--grad); padding: 7px 16px; border-radius: 8px;
+    box-shadow: 0 4px 20px -6px rgba(113,112,255,0.7); transition: transform .15s, box-shadow .15s;
   }
-  .nav-cta:hover { background: var(--accent-hover); }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 26px -6px rgba(113,112,255,0.9); }
+  @media (max-width: 640px) { .nav-links a:not(.nav-cta) { display: none; } }
 
-  /* Hero */
-  .hero {
-    position: relative; min-height: 88vh;
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 96px 0 80px;
-  }
-  .hero::before {
-    content: ''; position: absolute; inset: -120px 0 auto 0; height: 480px;
-    background: radial-gradient(60% 60% at 50% 0%, rgba(94, 106, 210, 0.14), transparent 72%);
-    pointer-events: none; z-index: -1;
-  }
-  .hero-label {
+  /* ---- Hero ---- */
+  .hero { position: relative; padding: 120px 0 96px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 12px; letter-spacing: 0.5px; text-transform: lowercase;
-    color: var(--text-4); margin-bottom: 24px;
+    font-size: 12px; letter-spacing: .4px; color: var(--text-3);
+    padding: 6px 14px; border-radius: 9999px;
+    border: 1px solid var(--border); background: var(--card);
+    margin-bottom: 30px;
+  }
+  .eyebrow .pulse {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 0 0 rgba(52,211,153,.6); animation: ping 2.4s ease-out infinite;
+  }
+  @keyframes ping { 0%{ box-shadow: 0 0 0 0 rgba(52,211,153,.55);} 70%{ box-shadow: 0 0 0 9px rgba(52,211,153,0);} 100%{ box-shadow: 0 0 0 0 rgba(52,211,153,0);} }
+
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(42px, 8vw, 92px); font-weight: 700; line-height: 0.98;
+    letter-spacing: -2.5px; color: var(--text); margin-bottom: 30px; max-width: 14ch;
+  }
+  .hero h1 .line2 { display: block; }
+  .hero-bio {
+    font-size: clamp(17px, 2.2vw, 20px); font-weight: 400; line-height: 1.6;
+    color: var(--text-2); max-width: 640px; letter-spacing: -0.18px; margin-bottom: 22px;
+  }
+  .hero-bio strong { color: var(--text); font-weight: 600; }
+
+  .clouds { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
+  .cloud-pill {
+    font-size: 12.5px; font-weight: 560; letter-spacing: .2px;
+    padding: 6px 13px 6px 11px; border-radius: 9999px;
+    border: 1px solid var(--border); background: var(--card);
+    display: inline-flex; align-items: center; gap: 7px; color: var(--text-2);
+  }
+  .cloud-pill::before { content:''; width: 7px; height: 7px; border-radius: 2px; }
+  .cloud-pill.aws::before { background: #ff9900; }
+  .cloud-pill.gcp::before { background: #4285f4; }
+  .cloud-pill.azure::before { background: #2ec5ff; }
+  .cloud-pill.regions { border-color: rgba(113,112,255,.35); color: var(--violet); }
+  .cloud-pill.regions::before { background: var(--violet); }
+
+  .hero-links { display: flex; gap: 11px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    font-size: 14px; font-weight: 540; border-radius: 9px;
+    padding: 11px 18px; transition: transform .15s, box-shadow .15s, background .15s, border-color .15s;
     display: inline-flex; align-items: center; gap: 8px;
   }
-  .hero-label::before {
-    content: ''; width: 24px; height: 1px; background: var(--border);
-  }
-  .hero h1 {
-    font-size: clamp(34px, 6vw, 56px); font-weight: 510; line-height: 1.02;
-    letter-spacing: -1.4px; color: var(--text); margin-bottom: 28px;
-  }
-  .hero h1 .accent { color: var(--accent); }
-  .hero-bio {
-    font-size: 18px; font-weight: 400; line-height: 1.62;
-    color: var(--text-3); max-width: 580px; letter-spacing: -0.16px;
-    margin-bottom: 36px;
-  }
-  .hero-links { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .btn {
-    font-size: 14px; font-weight: 510; border-radius: 6px;
-    padding: 9px 16px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px;
-  }
-  .btn-primary { background: var(--brand); color: #fff !important; }
-  .btn-primary:hover { background: var(--accent-hover); }
-  .btn-ghost {
-    background: rgba(255, 255, 255, 0.03); color: var(--text-2) !important;
-    border: 1px solid var(--border);
-  }
-  .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); color: var(--text) !important; }
+  .btn-primary { background: var(--grad); color: #fff !important; box-shadow: 0 6px 26px -8px rgba(113,112,255,0.8); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 34px -8px rgba(113,112,255,0.95); }
+  .btn-ghost { background: rgba(255,255,255,0.03); color: var(--text-2) !important; border: 1px solid var(--border); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.07); color: var(--text) !important; border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
 
-  /* Sections */
-  section { padding: 72px 0; border-top: 1px solid var(--border-subtle); }
-  .section-label {
+  /* ---- Marquee ---- */
+  .marquee {
+    margin-top: 64px; position: relative; overflow: hidden;
+    border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);
+    padding: 18px 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee-track { display: flex; gap: 40px; width: max-content; animation: scroll 38s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-track span {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 14px;
+    color: var(--text-4); white-space: nowrap; letter-spacing: .3px; display: inline-flex; align-items: center; gap: 40px;
+  }
+  .marquee-track span::after { content: '•'; color: rgba(113,112,255,.45); }
+  @keyframes scroll { from { transform: translateX(0);} to { transform: translateX(-50%);} }
+
+  /* ---- Sections ---- */
+  section.block { padding: 88px 0; position: relative; }
+  .section-head { margin-bottom: 44px; }
+  .section-num {
     font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 11px; font-weight: 510; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--text-3); margin-bottom: 32px;
-    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; font-weight: 560; letter-spacing: 1px;
+    color: var(--text-4); display: block; margin-bottom: 10px;
   }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+  .section-num b { color: var(--violet); font-weight: 600; }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(28px, 4vw, 40px); font-weight: 600; letter-spacing: -1px; color: var(--text);
+  }
+  .section-sub { color: var(--text-3); font-size: 15px; margin-top: 10px; max-width: 560px; }
 
-  /* Project cards */
-  .project {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 22px 24px; margin-bottom: 14px;
-    transition: background 0.18s, border-color 0.18s, transform 0.18s;
+  /* ---- Featured SquareX block ---- */
+  .featured {
+    position: relative; border-radius: 20px; padding: 30px; margin-bottom: 24px;
+    background: linear-gradient(180deg, rgba(113,112,255,0.07), rgba(34,211,238,0.025));
+    border: 1px solid rgba(113,112,255,0.18); overflow: hidden;
   }
-  .project:hover {
-    background: var(--card-hover); border-color: rgba(255, 255, 255, 0.13);
-    transform: translateY(-1px);
+  .featured::before {
+    content:''; position: absolute; inset: 0; border-radius: 20px; padding: 1px;
+    background: var(--grad); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; opacity: .35; pointer-events: none;
   }
-  .project-header {
-    display: flex; align-items: center; gap: 12px;
-    margin-bottom: 12px; flex-wrap: wrap;
-  }
-  .project-name {
-    font-size: 19px; font-weight: 590; letter-spacing: -0.3px; color: var(--text);
-  }
-  .project-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tag {
-    font-size: 11px; font-weight: 510; letter-spacing: 0.2px;
-    padding: 2px 10px; border-radius: 9999px;
-    background: transparent; border: 1px solid var(--border-solid);
-    color: var(--text-2); display: inline-flex; align-items: center; gap: 5px;
-  }
-  .tag::before {
-    content: ''; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--text-4);
-  }
-  .tag.go::before { background: #60a5fa; }
-  .tag.python::before { background: var(--green); }
-  .tag.kotlin::before { background: var(--accent); }
-  .tag.react::before { background: #38bdf8; }
-  .tag.js::before { background: #fbbf24; }
-  .tag.ml::before { background: #f472b6; }
-  .tag.cloudflare::before { background: #f97316; }
-  .tag.shipped { color: var(--green); border-color: rgba(16,185,129,0.3); }
-  .tag.shipped::before { background: var(--green); box-shadow: 0 0 6px rgba(16,185,129,0.6); }
-  .tag.private { color: var(--text-4); font-style: italic; }
-  .tag.private::before { display: none; }
+  .featured-top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  .featured-role { font-size: 20px; font-weight: 640; color: var(--text); letter-spacing: -.3px; font-family: 'Space Grotesk', sans-serif; }
+  .featured-co { font-size: 16px; font-weight: 560; }
+  .featured-co a { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .featured-period { font-size: 12.5px; color: var(--text-4); margin-left: auto; white-space: nowrap; letter-spacing: .2px; }
+  .featured-meta { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px; color: var(--text-4); margin-bottom: 18px; letter-spacing: .2px; }
+  .featured-meta a { color: var(--text-3); }
+  .featured-lead { font-size: 15px; color: var(--text-2); line-height: 1.6; max-width: 680px; margin-bottom: 22px; }
 
-  .project-desc {
-    font-size: 14.5px; font-weight: 400; line-height: 1.62;
-    color: var(--text-3); letter-spacing: -0.16px; max-width: 620px;
+  .systems { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .sys {
+    background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+    border-radius: 13px; padding: 16px 17px; transition: background .18s, border-color .18s, transform .18s;
   }
-  .project-links { display: flex; gap: 18px; margin-top: 14px; }
-  .project-links a { font-size: 13px; font-weight: 510; }
+  .sys:hover { background: rgba(255,255,255,0.05); border-color: rgba(113,112,255,.3); transform: translateY(-2px); }
+  .sys-name { font-size: 14.5px; font-weight: 620; color: var(--text); margin-bottom: 5px; display: flex; align-items: center; gap: 8px; letter-spacing: -.2px; }
+  .sys-name .chip { font-family: ui-monospace, Menlo, monospace; font-size: 10px; font-weight: 500; letter-spacing: .3px; padding: 2px 7px; border-radius: 6px; background: rgba(113,112,255,.14); color: var(--violet); }
+  .sys-desc { font-size: 13px; line-height: 1.55; color: var(--text-3); }
+  .featured-foot { font-size: 14px; color: var(--text-3); line-height: 1.62; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
+  .featured-foot strong { color: var(--text-2); font-weight: 600; }
 
-  /* Experience */
-  .exp {
-    position: relative; border-left: 2px solid var(--border-solid);
-    padding: 0 0 2px 24px; margin-bottom: 28px;
-  }
+  /* ---- Experience timeline ---- */
+  .exp { position: relative; border-left: 2px solid var(--border); padding: 0 0 4px 26px; margin-bottom: 30px; }
   .exp:last-child { margin-bottom: 0; }
   .exp::before {
-    content: ''; position: absolute; left: -5px; top: 6px;
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 8px rgba(113, 112, 255, 0.6);
+    content:''; position: absolute; left: -6px; top: 7px; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--grad); box-shadow: 0 0 10px rgba(113,112,255,.6);
   }
-  .exp-header {
-    display: flex; align-items: baseline; gap: 10px;
-    flex-wrap: wrap; margin-bottom: 3px;
-  }
-  .exp-role { font-size: 17px; font-weight: 590; letter-spacing: -0.3px; color: var(--text); }
-  .exp-company { font-size: 15px; font-weight: 510; color: var(--accent); }
-  .exp-period {
-    font-size: 12px; color: var(--text-4); margin-left: auto;
-    letter-spacing: 0.2px; white-space: nowrap;
-  }
-  .exp-meta {
-    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 11.5px; color: var(--text-4); margin-bottom: 12px; letter-spacing: 0.2px;
-  }
-  .exp-list { list-style: none; margin: 0; padding: 0; max-width: 620px; }
-  .exp-list li {
-    position: relative; padding-left: 18px; margin-bottom: 7px;
-    font-size: 14.5px; line-height: 1.6; color: var(--text-3); letter-spacing: -0.16px;
-  }
+  .exp-header { display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap; margin-bottom: 3px; }
+  .exp-role { font-size: 17px; font-weight: 600; letter-spacing: -.3px; color: var(--text); }
+  .exp-company { font-size: 15px; font-weight: 540; color: var(--violet); }
+  .exp-period { font-size: 12px; color: var(--text-4); margin-left: auto; letter-spacing: .2px; white-space: nowrap; }
+  .exp-meta { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px; color: var(--text-4); margin-bottom: 11px; letter-spacing: .2px; }
+  .exp-list { list-style: none; max-width: 700px; }
+  .exp-list li { position: relative; padding-left: 19px; margin-bottom: 7px; font-size: 14.5px; line-height: 1.6; color: var(--text-3); letter-spacing: -.16px; }
   .exp-list li:last-child { margin-bottom: 0; }
-  .exp-list li::before {
-    content: ''; position: absolute; left: 0; top: 9px;
-    width: 5px; height: 5px; border-radius: 50%; background: var(--text-4);
-  }
+  .exp-list li::before { content:''; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--indigo); }
 
-  /* About */
-  .about-text { font-size: 16px; line-height: 1.68; color: var(--text-2); max-width: 620px; }
+  /* ---- Projects ---- */
+  .group-label {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; font-weight: 560;
+    letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-3);
+    display: flex; align-items: center; gap: 11px; margin: 8px 0 18px;
+  }
+  .group-label::after { content:''; flex: 1; height: 1px; background: var(--border-subtle); }
+  .group-label.ai { color: var(--violet); }
+
+  .proj-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 40px; }
+  .proj-grid:last-child { margin-bottom: 0; }
+  .project {
+    position: relative; background: var(--card); border: 1px solid var(--border);
+    border-radius: 15px; padding: 22px 23px; transition: background .18s, border-color .18s, transform .18s;
+    display: flex; flex-direction: column;
+  }
+  .project:hover { background: var(--card-hover); border-color: rgba(255,255,255,0.16); transform: translateY(-3px); }
+  .project.span2 { grid-column: span 2; }
+  .project-header { display: flex; align-items: center; gap: 11px; margin-bottom: 11px; flex-wrap: wrap; }
+  .project-name { font-size: 18px; font-weight: 620; letter-spacing: -.3px; color: var(--text); font-family: 'Space Grotesk', sans-serif; }
+  .project-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .tag {
+    font-size: 11px; font-weight: 520; letter-spacing: .2px; padding: 3px 10px; border-radius: 9999px;
+    background: transparent; border: 1px solid var(--border); color: var(--text-3);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .tag::before { content:''; width: 6px; height: 6px; border-radius: 50%; background: var(--text-4); }
+  .tag.go::before { background: #60a5fa; }
+  .tag.python::before { background: var(--green); }
+  .tag.kotlin::before { background: var(--violet); }
+  .tag.swift::before { background: #ff7a59; }
+  .tag.react::before { background: #38bdf8; }
+  .tag.js::before { background: #fbbf24; }
+  .tag.ml::before { background: var(--magenta); }
+  .tag.cloudflare::before { background: #f97316; }
+  .tag.shipped { color: var(--green); border-color: rgba(52,211,153,.32); }
+  .tag.shipped::before { background: var(--green); box-shadow: 0 0 6px rgba(52,211,153,.6); }
+  .tag.private { color: var(--text-4); font-style: italic; }
+  .tag.private::before { display: none; }
+  .project-desc { font-size: 14px; line-height: 1.62; color: var(--text-3); letter-spacing: -.16px; flex: 1; }
+  .project-links { display: flex; gap: 18px; margin-top: 15px; }
+  .project-links a { font-size: 13px; font-weight: 540; display: inline-flex; align-items: center; gap: 5px; }
+
+  /* ---- About ---- */
+  .about-text { font-size: 16.5px; line-height: 1.7; color: var(--text-2); max-width: var(--reading); }
   .about-text p { margin-bottom: 16px; }
-  .about-text strong { color: var(--text); font-weight: 590; }
+  .about-text strong { color: var(--text); font-weight: 600; }
 
-  .stack-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px; margin-top: 32px;
-  }
+  .stack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; margin-top: 34px; }
   .stack-item {
-    padding: 18px; background: var(--card);
-    border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    transition: border-color .18s, transform .18s;
   }
+  .stack-item:hover { border-color: rgba(113,112,255,.28); transform: translateY(-2px); }
   .stack-item h4 {
-    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
-    color: var(--text-3); margin-bottom: 10px; font-weight: 510;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--violet); margin-bottom: 11px; font-weight: 560;
   }
-  .stack-item p { font-size: 13.5px; color: var(--text-3); line-height: 1.5; }
+  .stack-item p { font-size: 14px; color: var(--text-2); line-height: 1.6; }
 
-  /* Tvash featured block */
   .tvash-block {
-    margin-top: 32px; padding: 22px 24px;
-    background: linear-gradient(180deg, rgba(94, 106, 210, 0.08), rgba(94, 106, 210, 0.02));
-    border: 1px solid rgba(113, 112, 255, 0.18);
-    border-left: 2px solid var(--brand); border-radius: 12px;
+    margin-top: 34px; padding: 26px 28px; border-radius: 16px; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, rgba(255,110,199,0.07), rgba(113,112,255,0.06) 55%, rgba(34,211,238,0.05));
+    border: 1px solid rgba(167,139,250,0.22);
   }
   .tvash-block h3 {
-    font-size: 15px; color: var(--text); margin-bottom: 8px; font-weight: 590;
-    display: flex; align-items: center; gap: 9px; letter-spacing: -0.2px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 17px; color: var(--text); margin-bottom: 9px;
+    font-weight: 620; display: flex; align-items: center; gap: 10px; letter-spacing: -.3px;
   }
-  .tvash-block h3 .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 8px rgba(113,112,255,0.7);
-  }
-  .tvash-block p { font-size: 14px; color: var(--text-3); line-height: 1.62; }
+  .tvash-block h3 .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--grad-magenta); box-shadow: 0 0 12px rgba(255,110,199,.6); }
+  .tvash-block p { font-size: 14.5px; color: var(--text-2); line-height: 1.65; max-width: 640px; }
 
-  /* Footer */
-  footer { padding: 40px 0; border-top: 1px solid var(--border-subtle); text-align: center; }
-  footer p {
-    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 12px; color: var(--text-4);
-  }
+  /* ---- Footer ---- */
+  footer { padding: 56px 0 64px; border-top: 1px solid var(--border-subtle); }
+  .foot-inner { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .foot-inner p { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; color: var(--text-4); }
+  .foot-links { margin-left: auto; display: flex; gap: 20px; }
+  .foot-links a { font-size: 13px; font-weight: 520; color: var(--text-3); }
+  .foot-links a:hover { color: var(--text); }
 
-  /* Scroll hint */
-  .scroll-hint {
-    position: absolute; bottom: 28px; left: 0;
-    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 11px; color: var(--text-4); letter-spacing: 1px;
-    animation: pulse 2.4s ease-in-out infinite;
+  /* ---- Scroll reveal ---- */
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s cubic-bezier(.22,.61,.36,1), transform .6s cubic-bezier(.22,.61,.36,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 760px) {
+    .systems, .proj-grid, .stack-grid { grid-template-columns: 1fr; }
+    .project.span2 { grid-column: span 1; }
+    .featured-period, .exp-period { margin-left: 0; }
   }
-  @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+  @media (max-width: 480px) {
+    .wrap { padding: 0 18px; }
+    .nav-inner { padding: 12px 18px; gap: 16px; }
+    section.block { padding: 64px 0; }
+    .hero { padding: 84px 0 72px; }
+    .featured { padding: 22px 18px; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .scroll-hint { animation: none; }
+    .blob, .marquee-track, .eyebrow .pulse { animation: none !important; }
+    .reveal { opacity: 1; transform: none; transition: none; }
     * { transition: none !important; }
-  }
-
-  @media (max-width: 480px) {
-    .container { padding: 0 18px; }
-    .nav-inner { padding: 12px 18px; gap: 18px; }
-    section { padding: 56px 0; }
-    .hero { padding: 72px 0 64px; min-height: auto; }
-    .stack-grid { grid-template-columns: 1fr; }
-    .hero-links { gap: 8px; }
   }
 </style>
 </head>
 <body>
+
+<div class="bg-mesh" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+<div class="bg-grid" aria-hidden="true"></div>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
 <nav class="site-nav" aria-label="Primary">
   <div class="nav-inner">
     <span class="nav-brand"><span class="dot"></span>shivam som bajpai</span>
-    <a href="#experience">Experience</a>
-    <a href="#projects">Projects</a>
-    <a href="#about">About</a>
-    <a class="nav-cta" href="mailto:ssbajpai9@gmail.com">Email</a>
+    <div class="nav-links">
+      <a href="#experience">Experience</a>
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a class="nav-cta" href="mailto:ssbajpai9@gmail.com">Get in touch</a>
+    </div>
   </div>
 </nav>
 
-<div class="container" id="main">
+<div class="wrap" id="main">
   <header class="hero">
-    <p class="hero-label">portfolio</p>
-    <h1>I build things that <span class="accent">work</span>.</h1>
+    <span class="eyebrow mono"><span class="pulse"></span>backend &amp; platform engineer · full-stack builder</span>
+    <h1 class="display">I build things that <span class="gradient-text">work</span><span class="line2">— at scale, and on the side.</span></h1>
     <p class="hero-bio">
-      Backend &amp; platform engineer and full-stack builder. I've shipped
-      production systems at scale &mdash; multi-cloud infrastructure and identity
-      for an enterprise security platform (SquareX, acquired by Zscaler) and a
-      fintech lending platform (FinBox) &mdash; and I build my own on the side:
-      advisory apps that give farmers data-driven insights and infrastructure
-      for AI agents. Human ideas, AI-assisted execution.
+      I ship production <strong>backend and platform systems</strong> for enterprise SaaS —
+      multi-cloud infrastructure, identity, and security that run across AWS, GCP, and
+      Azure in 10+ regions. Off the clock, I build whatever a problem needs:
+      <strong>AI-agent infrastructure</strong>, Android and iOS apps, CLIs, and ML pipelines.
     </p>
+    <div class="clouds">
+      <span class="cloud-pill aws">AWS</span>
+      <span class="cloud-pill gcp">GCP</span>
+      <span class="cloud-pill azure">Azure</span>
+      <span class="cloud-pill regions">10+ regions</span>
+    </div>
     <div class="hero-links">
-      <a class="btn btn-primary" href="#projects">View projects</a>
+      <a class="btn btn-primary" href="#work">View work</a>
       <a class="btn btn-ghost" href="https://github.com/shivamsbajpai" target="_blank" rel="noopener">GitHub</a>
       <a class="btn btn-ghost" href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
+      <a class="btn btn-ghost" href="./latest_resume.pdf" target="_blank" rel="noopener">Résumé</a>
     </div>
-    <a class="scroll-hint" href="#projects" aria-label="Scroll to projects">scroll &darr;</a>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Go</span><span>Python</span><span>Kotlin</span><span>Swift</span><span>TypeScript</span><span>gRPC</span><span>PostgreSQL</span><span>BigQuery</span><span>Kubernetes / GKE</span><span>Kafka</span><span>Redis</span><span>Elasticsearch</span><span>Terraform</span><span>Docker</span><span>MCP</span><span>React</span>
+        <span>Go</span><span>Python</span><span>Kotlin</span><span>Swift</span><span>TypeScript</span><span>gRPC</span><span>PostgreSQL</span><span>BigQuery</span><span>Kubernetes / GKE</span><span>Kafka</span><span>Redis</span><span>Elasticsearch</span><span>Terraform</span><span>Docker</span><span>MCP</span><span>React</span>
+      </div>
+    </div>
   </header>
 
-  <section id="experience">
-    <h2 class="section-label">Experience</h2>
-
-    <div class="exp">
-      <div class="exp-header">
-        <span class="exp-role">Software Engineer</span>
-        <span class="exp-company">SquareX</span>
-        <span class="exp-period mono">Dec 2023 &mdash; Jul 2025</span>
-      </div>
-      <p class="exp-meta">browser-native enterprise security &middot; singapore &middot; <a href="https://www.zscaler.com/press/zscaler-acquires-squarex" target="_blank" rel="noopener">acquired by Zscaler &nearr;</a></p>
-      <ul class="exp-list">
-        <li>Built and owned multiple core backend services (Go, Python) for a multi-tenant, browser-native enterprise security platform on GCP/AWS/Azure.</li>
-        <li>Developed a multi-cloud node-orchestration control plane that provisions, autoscales, and upgrades compute across AWS, GCP, and Azure in 10+ regions.</li>
-        <li>Built identity sync from multiple identity providers and a multi-tenant OIDC/OAuth2 identity provider with per-tenant isolation and federated login.</li>
-        <li>Engineered the policy and access-control layer (policy engine, DLP, SSO, device and group management) and security-telemetry microservices.</li>
-        <li>Owned reliability and delivery across services &mdash; CI/CD, observability, SLO alerting, secret management, and multi-region deployment tooling.</li>
-      </ul>
+  <section class="block" id="experience">
+    <div class="section-head reveal">
+      <span class="section-num"><b>01</b> / EXPERIENCE</span>
+      <h2 class="section-title display">Where I've shipped</h2>
+      <p class="section-sub">Five years across enterprise security, fintech, and platform infrastructure — owning services end to end.</p>
     </div>
 
-    <div class="exp">
+    <div class="featured reveal">
+      <div class="featured-top">
+        <span class="featured-role">Software Engineer</span>
+        <span class="featured-co"><a href="https://www.zscaler.com/press/zscaler-acquires-squarex" target="_blank" rel="noopener">SquareX</a></span>
+        <span class="featured-period mono">Dec 2023 — Jul 2025</span>
+      </div>
+      <p class="featured-meta">browser-native enterprise security · singapore · <a href="https://www.zscaler.com/press/zscaler-acquires-squarex" target="_blank" rel="noopener">acquired by Zscaler ↗</a></p>
+      <p class="featured-lead">
+        I owned multiple core backend services (Go &amp; Python) for a multi-tenant,
+        browser-native enterprise security platform on GCP, AWS, and Azure — and merged
+        more pull requests than any other engineer on the main backend. A few of the
+        systems I built and led:
+      </p>
+      <div class="systems">
+        <div class="sys">
+          <div class="sys-name">Multi-cloud orchestrator <span class="chip">Go</span></div>
+          <p class="sys-desc">A node-orchestration control plane that provisions, autoscales, and upgrades compute across AWS, GCP &amp; Azure in 10+ regions — with a warm instance pool and spot-eviction handling to cut cloud spend.</p>
+        </div>
+        <div class="sys">
+          <div class="sys-name">Identity-sync engine <span class="chip">Go · gRPC</span></div>
+          <p class="sys-desc">Built largely solo: ingests users, groups &amp; devices from five identity providers — Entra, Okta, Google, JumpCloud, Ping — into per-tenant Postgres + BigQuery over gRPC.</p>
+        </div>
+        <div class="sys">
+          <div class="sys-name">Identity provider <span class="chip">Go · OIDC</span></div>
+          <p class="sys-desc">A multi-tenant OpenID Connect / OAuth2 provider — full authorization, token &amp; JWKS surface with per-tenant isolation and federated login via Entra &amp; Ping.</p>
+        </div>
+        <div class="sys">
+          <div class="sys-name">Domain-intelligence services <span class="chip">Go · GKE</span></div>
+          <p class="sys-desc">A six-service Go suite for credential management, domain categorization, WHOIS, and breach detection on GKE — fed by a Kafka / Pub-Sub event multiplexer.</p>
+        </div>
+      </div>
+      <p class="featured-foot">
+        Plus the <strong>policy &amp; access-control layer</strong> (policy engine, DLP, SSO, members/groups/devices),
+        the <strong>deployment toolkit</strong> that stands up per-tenant infrastructure across five regions, and
+        the reliability layer underneath it all — CI/CD, observability, SLO alerting, and secret management.
+      </p>
+    </div>
+
+    <div class="exp reveal">
       <div class="exp-header">
         <span class="exp-role">Associate Product Manager</span>
         <span class="exp-company">FinBox</span>
-        <span class="exp-period mono">Jan 2022 &mdash; Sep 2023</span>
+        <span class="exp-period mono">Jan 2022 — Sep 2023</span>
       </div>
-      <p class="exp-meta">bengaluru, india</p>
+      <p class="exp-meta">fintech lending infrastructure · bengaluru, india</p>
       <ul class="exp-list">
-        <li>Core maintainer of the FinBox lending platform &mdash; a Go backend powering lending products.</li>
+        <li>Core maintainer of the FinBox lending platform — a Go backend powering embedded lending products.</li>
         <li>Managed and migrated infrastructure to a secure, compliant cloud using Terraform.</li>
       </ul>
     </div>
 
-    <div class="exp">
+    <div class="exp reveal">
       <div class="exp-header">
         <span class="exp-role">Product Management Intern</span>
         <span class="exp-company">FinBox</span>
-        <span class="exp-period mono">Aug 2021 &mdash; Dec 2021</span>
+        <span class="exp-period mono">Aug 2021 — Dec 2021</span>
       </div>
       <p class="exp-meta">bengaluru, india</p>
       <ul class="exp-list">
         <li>Built Grafana and Redash dashboards tracking key metrics and funnel conversion.</li>
-        <li>Developed Airflow DAGs and Python scripts to automate various tasks.</li>
+        <li>Developed Airflow DAGs and Python scripts to automate recurring data tasks.</li>
       </ul>
     </div>
 
-    <div class="exp">
+    <div class="exp reveal">
       <div class="exp-header">
         <span class="exp-role">Software Development Intern</span>
         <span class="exp-company">Afour Technologies</span>
-        <span class="exp-period mono">Jan 2021 &mdash; Jun 2021</span>
+        <span class="exp-period mono">Jan 2021 — Jun 2021</span>
       </div>
       <p class="exp-meta">pune, india</p>
       <ul class="exp-list">
@@ -418,11 +541,11 @@
       </ul>
     </div>
 
-    <div class="exp">
+    <div class="exp reveal">
       <div class="exp-header">
         <span class="exp-role">Software Development Intern</span>
         <span class="exp-company">Zaggle Prepaid Ocean Services</span>
-        <span class="exp-period mono">Aug 2020 &mdash; Dec 2020</span>
+        <span class="exp-period mono">Aug 2020 — Dec 2020</span>
       </div>
       <p class="exp-meta">hyderabad, india</p>
       <ul class="exp-list">
@@ -431,191 +554,218 @@
     </div>
   </section>
 
-  <section id="projects">
-    <h2 class="section-label">Projects</h2>
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">second-brain</span>
-        <div class="project-tags">
-          <span class="tag go">Go</span>
-          <span class="tag react">React</span>
-          <span class="tag private">private</span>
-        </div>
-      </div>
-      <p class="project-desc">
-        A structured personal-knowledge service that any AI agent can query via
-        MCP (Model Context Protocol). Stores preferences, policies, vendor ratings,
-        and order history across domains &mdash; food, coding, cabs, services. Agents call
-        get_briefing() for fast, token-frugal context. Built with Go, Postgres + pgvector,
-        MCP over HTTP/SSE, and a React dashboard for feedback and metrics. Includes
-        sensitivity classification, provenance tracking, and idempotent markdown import.
-      </p>
+  <section class="block" id="work">
+    <div class="section-head reveal">
+      <span class="section-num"><b>02</b> / SELECTED WORK</span>
+      <h2 class="section-title display">Things I build on my own</h2>
+      <p class="section-sub">Real, shipped side projects — from AI-agent infrastructure to mobile apps, CLIs, and ML pipelines.</p>
     </div>
 
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">photo-gallery</span>
-        <div class="project-tags">
-          <span class="tag python">Python</span>
-          <span class="tag ml">ML</span>
-          <span class="tag cloudflare">Cloudflare</span>
-          <span class="tag private">private</span>
+    <p class="group-label ai reveal">AI &amp; agent infrastructure</p>
+    <div class="proj-grid">
+      <div class="project span2 reveal">
+        <div class="project-header">
+          <span class="project-name">second-brain</span>
+          <div class="project-tags">
+            <span class="tag go">Go</span>
+            <span class="tag react">React</span>
+            <span class="tag private">private</span>
+          </div>
         </div>
+        <p class="project-desc">
+          A structured personal-knowledge service that any AI agent can query over MCP
+          (Model Context Protocol). It stores preferences, policies, vendor ratings, and
+          order history across domains — food, coding, cabs, services — so an agent calls
+          <span class="mono">get_briefing()</span> for fast, token-frugal context before it acts.
+          Built with Go, Postgres + pgvector, and MCP over HTTP/SSE, with a React dashboard for
+          feedback and metrics. Includes sensitivity classification, provenance tracking, and
+          idempotent markdown import.
+        </p>
       </div>
-      <p class="project-desc">
-        Turns event photos into a deployed site where guests click a face to see
-        every photo that person appears in. Uses RetinaFace + ArcFace for detection
-        and recognition, agglomerative clustering to group faces. Guests can
-        collaboratively name people. Deployed on Cloudflare Pages + R2 + KV with
-        password protection. Used for real weddings and events.
-      </p>
-    </div>
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">sales-saathi</span>
-        <div class="project-tags">
-          <span class="tag python">Python</span>
-          <span class="tag private">private</span>
+      <div class="project reveal">
+        <div class="project-header">
+          <span class="project-name">sales-saathi</span>
+          <div class="project-tags">
+            <span class="tag python">Python</span>
+            <span class="tag ml">ML</span>
+            <span class="tag private">private</span>
+          </div>
         </div>
+        <p class="project-desc">
+          Live Hindi sales-call coaching. Two people role-play a loan call with push-to-talk;
+          it transcribes via local whisper-cpp (Metal-accelerated), whispers real-time nudges,
+          then scores the call across 7 dimensions with evidence-verified quotes. Runs entirely
+          locally — no API keys, no cloud.
+        </p>
       </div>
-      <p class="project-desc">
-        Live Hindi sales-call coaching tool. Two people role-play a loan sales call
-        with push-to-talk; the system transcribes via local whisper-cpp (Metal-accelerated,
-        no cloud), whispers real-time coaching nudges, then produces a scored scorecard
-        across 7 dimensions with evidence-verified quotes. Supports live coaching and
-        recorded-call upload. Runs entirely locally &mdash; no API keys, no cloud.
-      </p>
-    </div>
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">lomasa-cli</span>
-        <div class="project-tags">
-          <span class="tag go">Go</span>
-          <span class="tag shipped">shipped</span>
+      <div class="project reveal">
+        <div class="project-header">
+          <span class="project-name">lomasa-cli</span>
+          <div class="project-tags">
+            <span class="tag go">Go</span>
+            <span class="tag shipped">shipped</span>
+          </div>
         </div>
-      </div>
-      <p class="project-desc">
-        Local AI agent manager &mdash; like nvm, but for open-source AI agents.
-        Install, configure, and launch tools like Ollama and OpenCode.
-        No API keys. No cloud. Everything runs locally. Named after the sage
-        Lomasa from the Mahabharata.
-      </p>
-      <div class="project-links">
-        <a href="https://github.com/lomasa-ai/lomasa-cli" target="_blank" rel="noopener">source &rarr;</a>
+        <p class="project-desc">
+          A local AI-agent manager — like nvm, but for open-source AI agents. Install, configure,
+          and launch tools like Ollama and OpenCode. No API keys, no cloud — everything runs
+          locally. Named after the sage Lomasa from the Mahabharata.
+        </p>
+        <div class="project-links">
+          <a href="https://github.com/lomasa-ai/lomasa-cli" target="_blank" rel="noopener">source →</a>
+        </div>
       </div>
     </div>
 
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">farm-pro</span>
-        <div class="project-tags">
-          <span class="tag python">Python</span>
-          <span class="tag kotlin">Kotlin</span>
-          <span class="tag private">private</span>
+    <p class="group-label reveal">Apps, tools &amp; ML</p>
+    <div class="proj-grid">
+      <div class="project reveal">
+        <div class="project-header">
+          <span class="project-name">photo-gallery</span>
+          <div class="project-tags">
+            <span class="tag python">Python</span>
+            <span class="tag ml">ML</span>
+            <span class="tag cloudflare">Cloudflare</span>
+          </div>
+        </div>
+        <p class="project-desc">
+          Turns event photos into a deployed site where guests click a face to see every photo
+          that person appears in. RetinaFace + ArcFace for detection and recognition,
+          agglomerative clustering to group faces, collaborative naming. Deployed on Cloudflare
+          Pages + R2 + KV with password protection. Used at real weddings and events.
+        </p>
+      </div>
+      <div class="project reveal">
+        <div class="project-header">
+          <span class="project-name">farm-pro</span>
+          <div class="project-tags">
+            <span class="tag kotlin">Kotlin</span>
+            <span class="tag python">Python</span>
+          </div>
+        </div>
+        <p class="project-desc">
+          Bilingual (English + Hindi) Android app and FastAPI backend giving farmers in Kanpur
+          Dehat, UP actionable insights — IMD weather, severe-weather nowcasts, and advisory
+          bulletins parsed from DAAS PDFs. Every card shows its source and freshness. Offline-first
+          with WorkManager sync. In internal testing.
+        </p>
+      </div>
+      <div class="project reveal">
+        <div class="project-header">
+          <span class="project-name">yt-skin</span>
+          <div class="project-tags">
+            <span class="tag js">JavaScript</span>
+            <span class="tag shipped">shipped</span>
+          </div>
+        </div>
+        <p class="project-desc">
+          A browser extension that adds a "skin" to YouTube — save videos and channels without
+          logging in, solving the problem of losing recommendations when watch history is off.
+          Published on both the Firefox Add-ons and Chrome Web Store.
+        </p>
+        <div class="project-links">
+          <a href="https://github.com/shivamsbajpai/yt-skin" target="_blank" rel="noopener">source →</a>
         </div>
       </div>
-      <p class="project-desc">
-        Bilingual (English + Hindi) Android app and FastAPI backend that gives
-        farmers in Kanpur Dehat, UP actionable insights &mdash; combining IMD weather
-        data, severe-weather nowcasts, and agricultural advisory bulletins into
-        guidance for their fields. Scrapes IMD data and parses DAAS PDF bulletins.
-        Every card shows its source link and freshness badge. Offline-first with
-        WorkManager background sync. Currently in internal testing.
-      </p>
-    </div>
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">yt-skin</span>
-        <div class="project-tags">
-          <span class="tag js">JavaScript</span>
-          <span class="tag shipped">shipped</span>
+      <div class="project reveal">
+        <div class="project-header">
+          <span class="project-name">ToLetLife</span>
+          <div class="project-tags">
+            <span class="tag kotlin">Kotlin</span>
+            <span class="tag python">Python</span>
+          </div>
         </div>
-      </div>
-      <p class="project-desc">
-        Browser extension that adds a "skin" to YouTube. Saves videos and channels
-        without logging in &mdash; solving the problem of losing recommendations when
-        watch history is off. Published on both Firefox Add-ons and Chrome Web Store.
-      </p>
-      <div class="project-links">
-        <a href="https://github.com/shivamsbajpai/yt-skin" target="_blank" rel="noopener">source &rarr;</a>
-      </div>
-    </div>
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">ToLetLife</span>
-        <div class="project-tags">
-          <span class="tag kotlin">Kotlin</span>
-          <span class="tag python">Python</span>
+        <p class="project-desc">
+          A rental marketplace where owners and renters connect directly. Full-stack: a Kotlin
+          Android app with a FastAPI backend, containerized with Docker. A complete product,
+          pitch deck and all.
+        </p>
+        <div class="project-links">
+          <a href="https://github.com/shivamsbajpai/ToLetLife" target="_blank" rel="noopener">android →</a>
+          <a href="https://github.com/shivamsbajpai/tolet_life_api" target="_blank" rel="noopener">api →</a>
         </div>
-      </div>
-      <p class="project-desc">
-        A rental marketplace where owners and renters connect directly.
-        Full-stack: Kotlin Android app with a FastAPI backend, containerized
-        with Docker. Complete product with a pitch deck.
-      </p>
-      <div class="project-links">
-        <a href="https://github.com/shivamsbajpai/ToLetLife" target="_blank" rel="noopener">android &rarr;</a>
-        <a href="https://github.com/shivamsbajpai/tolet_life_api" target="_blank" rel="noopener">api &rarr;</a>
       </div>
     </div>
   </section>
 
-  <section id="about">
-    <h2 class="section-label">About</h2>
+  <section class="block" id="about">
+    <div class="section-head reveal">
+      <span class="section-num"><b>03</b> / ABOUT</span>
+      <h2 class="section-title display">A builder who doesn't pick sides</h2>
+    </div>
 
-    <div class="about-text">
+    <div class="about-text reveal">
       <p>
-        I'm a builder who doesn't stick to one platform. Android in Kotlin, iOS in Swift,
-        browser extensions in JS, CLIs in Go, backends in Python, ML pipelines when
-        the problem calls for it. If it solves a problem, I'll learn whatever stack
-        gets it done.
+        I don't stick to one platform. Android in Kotlin, iOS in Swift, browser extensions in JS,
+        CLIs and backends in Go, services and ML pipelines in Python. If it solves a real problem,
+        I'll learn whatever stack gets it done — and ship it.
       </p>
       <p>
-        Right now I'm deep in the <strong>AI/LLM space</strong> &mdash; not just using these tools,
-        but building infrastructure around them. second-brain is an MCP-native memory
-        service for AI agents. sales-saathi runs local whisper + LLM for real-time
-        Hindi coaching. <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
-        is where the open-source work lives.
+        My day job is <strong>backend and platform engineering at scale</strong>: multi-cloud
+        orchestration, identity and access, and the reliability work that keeps multi-tenant
+        systems running across regions. The throughline is ownership — I like holding a service
+        end to end, from the data model to the deploy pipeline to the 2am alert.
       </p>
       <p>
-        I build for domains I care about &mdash; <strong>agritech</strong> (data-driven
-        advisories for farmers in UP), <strong>AI/LLM tooling</strong>, and tools that
-        make daily life better. Two projects are on
-        public app stores. The rest solve problems I actually had.
+        Right now I'm deep in the <strong>AI/LLM space</strong> — not just using these tools, but
+        building infrastructure around them. <strong>second-brain</strong> is an MCP-native memory
+        service for agents; <strong>sales-saathi</strong> runs local whisper + LLM for real-time
+        Hindi coaching; <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
+        is where the open-source work lives. I build for domains I care about — agritech, AI tooling,
+        and the small tools that make daily life better. Human ideas, AI-assisted execution.
       </p>
     </div>
 
-    <div class="stack-grid">
+    <div class="stack-grid reveal">
       <div class="stack-item">
         <h4>Domains</h4>
-        <p>Enterprise security, Identity &amp; access, Multi-cloud orchestration, Fintech, Agritech, AI/LLM tooling</p>
+        <p>Enterprise security · Identity &amp; access · Multi-cloud orchestration · Fintech · Agritech · AI/LLM tooling</p>
       </div>
       <div class="stack-item">
         <h4>Infrastructure</h4>
-        <p>GCP, AWS, Azure, Kubernetes/GKE, Docker, Terraform, gRPC, Kafka/Pub-Sub, Postgres, BigQuery, Elasticsearch, Redis, Cloudflare</p>
+        <p>GCP · AWS · Azure · Kubernetes/GKE · Docker · Terraform · gRPC · Kafka/Pub-Sub · Postgres · BigQuery · Elasticsearch · Redis · Cloudflare</p>
       </div>
     </div>
 
-    <div class="tvash-block">
-      <h3><span class="dot"></span>Meet Tvash</h3>
+    <div class="tvash-block reveal">
+      <h3 class="display"><span class="dot"></span>Meet Tvash</h3>
       <p>
-        Tvash is my AI collaborator &mdash; a Claude-powered agent that helps me build.
-        Not a gimmick. An actual part of my workflow. The lomasa-ai projects are all
-        human-AI pair programmed: I bring the ideas, Tvash helps execute.
-        <a href="https://github.com/claudeforssb" target="_blank" rel="noopener">@claudeforssb</a>
+        Tvash is my AI collaborator — a Claude-powered agent that's an actual part of my workflow,
+        not a gimmick. The lomasa-ai projects are human–AI pair-programmed: I bring the ideas and
+        judgment, Tvash helps execute. <a href="https://github.com/claudeforssb" target="_blank" rel="noopener">@claudeforssb</a>
       </p>
     </div>
   </section>
-
-  <footer>
-    <p>&copy; Shivam Som Bajpai</p>
-  </footer>
 </div>
+
+<footer>
+  <div class="wrap foot-inner">
+    <p>© Shivam Som Bajpai</p>
+    <div class="foot-links">
+      <a href="mailto:ssbajpai9@gmail.com">Email</a>
+      <a href="https://github.com/shivamsbajpai" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll-reveal — progressive enhancement; content is visible without JS.
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var els = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
 
 </body>
 </html>
