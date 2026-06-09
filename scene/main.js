@@ -321,8 +321,13 @@ function initScene(renderer) {
   /* --- input: wheel / keyboard / touch drive the optic state machine --- */
   let mx = 0, my = 0, tmx = 0, tmy = 0, paused = false;
   let app = initState();
-  const TRAVEL_LEN = reduce ? 1 : 2400;   // px of scroll to traverse one gap (scroll-driven) — higher = slower/more gradual
-  const LERP = reduce ? 1 : 0.22;
+  // Scroll px to traverse one checkpoint gap. The SAME scrubbed traversal under
+  // reduced-motion: the core travel→checkpoint→info loop stays visible there.
+  // Reduced-motion is honored below by damping *inertial* motion (tighter camera
+  // tracking + no parallax sway), not by teleporting between checkpoints — an
+  // earlier `reduce ? 1` collapsed a whole gap into one scroll notch, which read
+  // as "travel mode is gone."
+  const TRAVEL_LEN = 2400;
 
   function curContentMax() {
     const panel = panels[app.cp]; if (!panel) return 0;
@@ -402,7 +407,9 @@ function initScene(renderer) {
     // Smooth the scroll-driven progress: discrete wheel/touch steps (~10% of a gap
     // each) become one continuous glide. This is what removes the bumpiness while
     // keeping travel scroll-driven (it only advances toward where you scrolled).
-    renderFloat += (cameraFloat(app) - renderFloat) * (reduce ? 1 : 0.1);
+    // reduced-motion tracks scroll tightly (little inertial coast) but still
+    // interpolates between notches, so travel is smooth-but-snappy, not teleporty.
+    renderFloat += (cameraFloat(app) - renderFloat) * (reduce ? 0.3 : 0.1);
     vantage(renderFloat, tPos, tLook);
     // Ride up and over the dunes (smooth ripple-free ground) rather than cutting through.
     if (md === MODE.TRAVEL) {
@@ -410,13 +417,15 @@ function initScene(renderer) {
       const ly = camGround(tLook.x, tLook.z) + 4; if (tLook.y < ly) tLook.y = ly;
     }
     mx += (tmx - mx) * 0.05; my += (tmy - my) * 0.05;
-    const look = md === MODE.TRAVEL ? 1 : 0;
+    const look = (md === MODE.TRAVEL && !reduce) ? 1 : 0;   // no parallax sway under reduced-motion
     tLook.x += mx * 26 * look; tLook.y += -my * 16 * look; tPos.x += mx * 10 * look;
-    // second smoothing stage (double low-pass => continuous velocity => no per-notch bump)
-    camPos.x += (tPos.x - camPos.x) * (reduce ? 1 : 0.18);
-    camPos.z += (tPos.z - camPos.z) * (reduce ? 1 : 0.18);
-    camPos.y += (tPos.y - camPos.y) * (reduce ? 1 : 0.16);
-    camLook.lerp(tLook, reduce ? 1 : 0.18);
+    // second smoothing stage (double low-pass => continuous velocity => no per-notch bump).
+    // reduced-motion uses a tighter factor: responsive, minimal drift — but NOT 1
+    // (which would hard-snap each notch and reintroduce choppiness).
+    camPos.x += (tPos.x - camPos.x) * (reduce ? 0.35 : 0.18);
+    camPos.z += (tPos.z - camPos.z) * (reduce ? 0.35 : 0.18);
+    camPos.y += (tPos.y - camPos.y) * (reduce ? 0.32 : 0.16);
+    camLook.lerp(tLook, reduce ? 0.35 : 0.18);
     if (md === MODE.TRAVEL) { const f = camGround(camPos.x, camPos.z) + 8; if (camPos.y < f) camPos.y += (f - camPos.y) * 0.4; }
     camera.position.copy(camPos); camera.lookAt(camLook);
 
