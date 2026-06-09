@@ -16,66 +16,19 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(pointer: fine)').matches;
 const mobile = innerWidth < 768;
 
-/* ---------------- Checkpoints (placeholder content + world anchors) -------- */
+/* ---------------- Checkpoints (world anchors; content lives in v2.html) ----
+   Panel content is authored statically inside #infoLayer (Seam 2: the full
+   content exists in the served DOM with JS disabled). This module holds only
+   world data and hydrates the existing panels. ------------------------------ */
 const CHECKPOINTS = [
-  {
-    id: 'overwatch', label: '00 · OVERWATCH', anchor: [0, 60], fill: 4,
-    html: `<p class="eyebrow">// target acquired — overwatch</p>
-      <h1>I build things that work — at scale, and for the love of it.</h1>
-      <p>This is the RECON core-loop tracer: travel the Martian desert through the scope,
-      lock onto a checkpoint, the optic flips to info mode, you read its intel, then move on.</p>
-      <p class="scroll-hint">scroll to traverse to the next checkpoint ▾</p>`
-  },
-  {
-    id: 'alpha', label: '01 · PLACEHOLDER ALPHA', anchor: [80, -120], fill: 10,
-    html: `<h2>Checkpoint Alpha</h2>
-      <p>Placeholder intel block standing in for a real section (e.g. Experience). The camera
-      flew here across the dunes, locked on, and the desert behind is dimmed and depth-blurred.</p>
-      <p>Scrolling here drives this panel's content while the camera stays pinned. Multiple
-      scrolls just move the text — the camera does <em>not</em> step toward the next checkpoint.</p>
-      <p>Only when the content runs out does one more scroll release the pin and begin a single,
-      slow travel to the next target. A fast flick lands you at the end first, then a separate
-      scroll travels — so you never fly through by accident.</p>
-      <p>Lorem-grade filler to give this panel real scrollable height: the recon optic ranges,
-      the heading updates, dust drifts across a sunlit sector of Ares-09, and the outpost sits
-      dimmed behind this readout.</p>
-      <p>More filler: a deserted tank, crates, sandbags and a comms mast mark the position. The
-      graded pad keeps everything on flat ground so the scene composes cleanly.</p>
-      <p>Still more body text to ensure several wheel notches are absorbed by reading before the
-      end is reached — proving the decoupling of content-scroll from checkpoint travel.</p>
-      <p>Final paragraph of the placeholder. Real content (verbatim Experience / Work / About)
-      is rehomed in a later slice; this is only here to validate the interaction.</p>
-      <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>`
-  },
-  {
-    id: 'bravo', label: '02 · PLACEHOLDER BRAVO', anchor: [-80, -360], fill: 7,
-    html: `<h2>Checkpoint Bravo</h2>
-      <p>Second placeholder target. Reverse-scrolling from here flies the camera back to Alpha,
-      proving the journey is fully reversible.</p>
-      <p>Real props (rover / crates / antennas) and the holographic→crisp content surface arrive
-      in the next slice; real content is rehomed in the slice after that.</p>
-      <p class="scroll-hint">end of tracer — scroll up to traverse back ▴</p>`
-  },
+  { id: 'overwatch',  label: '00 · OVERWATCH',       anchor: [0, 60] },
+  { id: 'experience', label: '01 · EXPERIENCE',      anchor: [80, -120] },
+  { id: 'work',       label: '02 · WORK',            anchor: [-80, -360] },
+  { id: 'about',      label: '03 · ABOUT',           anchor: [90, -600] },
+  { id: 'comms',      label: '04 · ESTABLISH COMMS', anchor: [-40, -840] },
 ];
 
-/* ---------------- Build DOM panels (content lives in the DOM) -------------- */
 const infoLayer = document.getElementById('infoLayer');
-CHECKPOINTS.forEach((cp, i) => {
-  const panel = document.createElement('section');
-  panel.className = 'panel';
-  panel.dataset.cp = String(i);
-  let body = cp.html;
-  for (let k = 0; k < (cp.fill || 0); k++) {
-    body += `<p>Recon log ${String(k + 1).padStart(2, '0')}: sector telemetry nominal — wind ${4 + k} kph L→R, optic 12×, dust low. Placeholder filler giving this panel real scrollable height so multiple scrolls are absorbed by reading before the pin releases.</p>`;
-  }
-  panel.innerHTML = `
-    <div class="panel-head mono">
-      <span class="cp">${cp.label}</span>
-      <span class="lock">TARGET ACQUIRED</span>
-    </div>
-    <div class="panel-body"><div class="panel-scroll">${body}</div></div>`;
-  infoLayer.appendChild(panel);
-});
 const panels = [...infoLayer.querySelectorAll('.panel')];
 
 /* ---------------- value-noise fbm (module scope: terrain + bump) ----------- */
@@ -401,14 +354,16 @@ function initScene(renderer) {
   const cardK = () => Math.min(1, innerWidth / CARD_REF_W);  // 1 on desktop, <1 on mobile
   const cardScale = () => 0.04 * Math.max(0.6, cardK());     // floor 0.6 → never smaller than 0.024
   const cardXOff = () => 6 * Math.max(0.35, cardK());        // pull toward centreline on narrow screens
-  const cardTitle = (cp) => { const m = cp.html.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/); return (m ? m[1] : cp.label).replace(/<[^>]+>/g, '').trim(); };
+  // Card title mirrors the static panel's own heading (single source of truth).
+  const cardTitle = (i) => (panels[i]?.querySelector('.panel-body h1, .panel-body h2')?.textContent
+    ?? CHECKPOINTS[i].label).replace(/\s+/g, ' ').trim();
   const cards = anchors.map((a, i) => {
     const cp = CHECKPOINTS[i];
     const el = document.createElement('div');
     el.className = 'holo-card';
     el.style.opacity = '0';
     el.innerHTML = `<div class="hc-head"><span class="hc-cp">${cp.label}</span><span class="hc-lock">● TARGET ACQUIRED</span></div>`
-      + `<div class="hc-title">${cardTitle(cp)}</div>`
+      + `<div class="hc-title">${cardTitle(i)}</div>`
       + `<div class="hc-foot">DECRYPTING INTEL ▸ STAND BY</div>`;
     const obj = new CSS3DObject(el);
     obj.scale.setScalar(cardScale());
