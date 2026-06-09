@@ -3,7 +3,7 @@
 // bloom/atmosphere) + scope HUD + the travel<->info optic, driven entirely by
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
 // real content (Slice 3); simple markers stand in for GLTF props (Slice 2).
-import { initState, applyScroll, advanceTravel, cameraFloat, modeOf, PHASE, MODE } from './state.js';
+import { initState, applyScroll, cameraFloat, modeOf, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -319,17 +319,17 @@ function initScene(renderer) {
   composer.setSize(innerWidth, innerHeight);
 
   /* --- input: wheel / keyboard / touch drive the optic state machine --- */
-  let mx = 0, my = 0, tmx = 0, tmy = 0, paused = false, last = 0;
+  let mx = 0, my = 0, tmx = 0, tmy = 0, paused = false;
   let app = initState();
-  const TRAVEL_MS = reduce ? 1 : 2600;   // slow, single cinematic glide
-  const LERP = reduce ? 1 : 0.2;
+  const TRAVEL_LEN = reduce ? 1 : 1100;   // px of scroll to traverse one gap (scroll-driven)
+  const LERP = reduce ? 1 : 0.22;
 
   function curContentMax() {
     const panel = panels[app.cp]; if (!panel) return 0;
     const body = panel.querySelector('.panel-body'), inner = panel.querySelector('.panel-scroll');
     return Math.max(0, inner.scrollHeight - body.clientHeight);
   }
-  const scroll = (d) => { app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length); };
+  const scroll = (d) => { app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length, TRAVEL_LEN); };
 
   addEventListener('wheel', (e) => { e.preventDefault(); scroll(e.deltaY); }, { passive: false });
 
@@ -366,7 +366,7 @@ function initScene(renderer) {
     camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight);
   });
-  document.addEventListener('visibilitychange', () => { paused = document.hidden; last = 0; if (!paused) requestAnimationFrame(loop); });
+  document.addEventListener('visibilitychange', () => { paused = document.hidden; if (!paused) requestAnimationFrame(loop); });
 
   /* --- HUD + panel refs --- */
   const hudGrid = document.getElementById('hudGrid'), hudRange = document.getElementById('hudRange'),
@@ -386,8 +386,6 @@ function initScene(renderer) {
   const sunOffset = sunDir.clone().multiplyScalar(380);
   function loop(t) {
     if (paused) return;
-    const dt = last ? Math.min(80, t - last) : 16; last = t;
-    app = advanceTravel(app, dt, TRAVEL_MS);
     if (app.phase === PHASE.READING) { const m = curContentMax(); if (app.readScroll > m) app.readScroll = m; }
 
     const cf = cameraFloat(app), md = modeOf(app);
@@ -408,7 +406,7 @@ function initScene(renderer) {
     // x/z track promptly; vertical is low-passed so the over-dune arc is smooth (no bumps)
     camPos.x += (tPos.x - camPos.x) * LERP;
     camPos.z += (tPos.z - camPos.z) * LERP;
-    camPos.y += (tPos.y - camPos.y) * (reduce ? 1 : md === MODE.TRAVEL ? 0.07 : LERP);
+    camPos.y += (tPos.y - camPos.y) * (reduce ? 1 : md === MODE.TRAVEL ? 0.12 : LERP);
     camLook.lerp(tLook, LERP);
     if (md === MODE.TRAVEL) { const f = camGround(camPos.x, camPos.z) + 8; if (camPos.y < f) camPos.y += (f - camPos.y) * 0.4; } // soft floor, no hard kink
     camera.position.copy(camPos); camera.lookAt(camLook);

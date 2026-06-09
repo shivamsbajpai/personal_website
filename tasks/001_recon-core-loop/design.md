@@ -1,20 +1,21 @@
 # Slice 1 — implementation decisions
 
-- **D1 — Event-driven pure state machine (revised).** *Superseded the original
-  scroll-position-scrubbed model after feedback that travel felt fast and that
-  reading-scroll was entangled with checkpoint movement.* Native page scroll is
+- **D1 — Scroll-driven pure state machine (current).** Native page scroll is
   disabled (`body` fixed/overflow hidden); the app intercepts wheel/touch/keys.
-  `scene/state.js` is a pure reducer: `applyScroll(state, delta, contentMax,
-  count)` (READING scrolls content, pins at ends, a scroll past an end begins a
-  travel; locked while TRAVELLING) and `advanceTravel(state, dt, durationMs)`
-  (time-based). Two phases: `READING` (INFO) / `TRAVELLING` (TRAVEL). Pure → unit
-  tested in isolation.
+  `scene/state.js` is a pure reducer `applyScroll(state, delta, contentMax,
+  count, travelLen)`: in READING it scrolls content and pins at the ends; a
+  scroll past an end begins a travel; in TRAVELLING the **scroll itself scrubs**
+  the camera along the path (nothing moves on its own — stop scrolling and it
+  holds). Two phases: `READING` (INFO) / `TRAVELLING` (TRAVEL). Pure → unit
+  tested. *(History: started scroll-position-scrubbed → briefly a time-based
+  auto-glide → returned to scroll-driven per "make it scrollable, don't move on
+  its own", now with content-aware reading + a generous `TRAVEL_LEN`.)*
 
-- **D2 — `cameraFloat` eased over a timed travel (revised).** Travel is a single
-  time-based animation (`TRAVEL_MS ≈ 2600`, `easeInOut`), NOT scrubbed by scroll —
-  so its speed is controlled and consistent. `cameraFloat(state)` = `cp` while
-  reading, `from + (to-from)*ease(travelT)` while travelling; `main.js`
-  interpolates camera vantages by it.
+- **D2 — `cameraFloat` scrubbed along the rail.** `cameraFloat(state)` = `cp`
+  while reading, `from + (to-from)*easeInOut(travelT)` while travelling, where
+  `travelT` is advanced **by scroll delta / `TRAVEL_LEN`** (≈1100 px to cross a
+  gap). Scrolling forward advances, back reverses (past 1 you arrive, below 0 you
+  cancel to where you came from). `main.js` interpolates camera vantages by it.
 
 - **D3 — Info mode via a `body.info` class.** Crossing the 0.5 ramp toggles
   `body.info`, which CSS uses to: fade the scope out, dim+blur the canvas

@@ -13,7 +13,7 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
 | 3 | scene/main.js (sunny desert + wiring) | DONE spec ✅ code ✅ | (init commit) | travel↔info verified |
 | 3b | Photoreal pass (shadows/dunes/bump/bloom) | DONE ✅ | (realism commit) | per "make space more real" feedback |
 | 3c | Deserted army outposts at checkpoints (graded pads + tank/crates/sandbags/antenna/hedgehogs); mountains removed | DONE ✅ | (army commit) | per feedback; procedural stand-ins, GLTF kit in Slice 2 (#4) |
-| 3d | Event-driven travel: slow single eased glide (~2.6s); reading-scroll decoupled (multi-scroll reads, end+1 travels, locked during travel) | DONE ✅ | (mechanic commit) | per feedback "too fast" + "multiple scroll moves checkpoint"; state.js rewritten, 10/10 tests |
+| 3d | Travel mechanic: reading-scroll decoupled; travel is **scroll-driven** (scrub camera between checkpoints, holds when idle); over-dune clearance + smoothing | DONE ✅ | (mechanic/scrub/smooth commits) | per feedback "too fast", "multiple scroll moves", "moving on its own → scrollable", "bumpy"; state.js scroll-driven, 11/11 tests |
 | 4 | Local verification | DONE ✅ | — | Playwright: 0 errors, dock + reverse OK |
 | 5 | Owner approval gate | pending | — | awaiting local sign-off before Slice 2 |
 
