@@ -91,3 +91,4 @@ when cutover [PR-22] merges, `v2.html` will conflict with this preview
 
 [PR-24]: https://github.com/shivamsbajpai/personal_website/pull/24
 [PR-26]: https://github.com/shivamsbajpai/personal_website/pull/26
+[PR-25]: https://github.com/shivamsbajpai/personal_website/pull/25
