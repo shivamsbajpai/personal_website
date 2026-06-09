@@ -74,7 +74,7 @@
   .hud-br{position:absolute;bottom:22px;right:26px;text-align:right;line-height:1.7}
   @media (max-width:520px){ .hud-br{display:none} }
 
-  /* brand / fast-travel placeholder bar */
+  /* brand + fast-travel bar */
   .topbar { position: fixed; top:0; left:0; right:0; z-index: 30; display:flex; align-items:center;
     gap:14px; padding:14px 26px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
     pointer-events:none; }
@@ -82,6 +82,46 @@
   .topbar .brand .dot{ width:9px;height:9px;border-radius:50%;background:var(--lock);
     box-shadow:0 0 12px rgba(255,91,65,.9); }
   .topbar .tag{ color:var(--text-4); }
+  .topbar nav { margin-left:auto; display:flex; align-items:center; gap:8px; pointer-events:auto; }
+  .topbar nav button { background:none; border:1px solid var(--border-subtle); border-radius:6px;
+    color:var(--text-3); font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.6px;
+    padding:4px 9px; cursor:pointer; }
+  .topbar nav button:hover { color:var(--text); border-color:var(--border); }
+  .topbar nav button.cur { color:var(--amber); border-color:var(--border); }
+  .topbar nav .fc-open { color:var(--phosphor); border-color:rgba(124,252,166,.3); }
+  @media (max-width:560px){ .topbar nav .cp-jump { display:none; } }  /* phones keep ⌘K only */
+
+  /* ===== FIRE CONTROL — fast-travel command palette (Slice 5) ===== */
+  #fc { position:fixed; inset:0; z-index:70; display:none; align-items:flex-start; justify-content:center;
+    padding-top:14vh; background:rgba(8,4,2,.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+  #fc.open { display:flex; }
+  .fc-box { width:min(540px, calc(100% - 32px)); border:1px solid var(--border); border-radius:12px;
+    background:rgba(16,8,4,.92); box-shadow:0 40px 110px -34px rgba(0,0,0,.9);
+    font-family:'JetBrains Mono',monospace; overflow:hidden; }
+  .fc-head { display:flex; align-items:center; gap:10px; padding:12px 16px;
+    border-bottom:1px solid var(--border-subtle); font-size:10.5px; letter-spacing:1.2px; color:var(--text-4); }
+  .fc-head .t { color:var(--amber); }
+  .fc-head .esc { margin-left:auto; }
+  .fc-input-row { display:flex; align-items:center; gap:10px; padding:12px 16px;
+    border-bottom:1px solid var(--border-subtle); }
+  .fc-input-row .pmt { color:var(--phosphor); }
+  #fcInput { flex:1; background:none; border:none; outline:none; color:var(--text);
+    font-family:'JetBrains Mono',monospace; font-size:13.5px; }
+  #fcList { max-height:300px; overflow-y:auto; padding:6px; }
+  .fc-item { display:flex; align-items:baseline; gap:10px; padding:9px 12px; border-radius:8px;
+    font-size:12.5px; color:var(--text-2); cursor:pointer; }
+  .fc-item .k { color:var(--text-4); font-size:10.5px; letter-spacing:.8px; min-width:5.5ch; }
+  .fc-item .hint { margin-left:auto; color:var(--text-4); font-size:10px; }
+  .fc-item.sel { background:rgba(255,178,74,.1); color:var(--text); }
+  .fc-item.sel .k { color:var(--amber); }
+  .fc-empty { padding:14px 12px; font-size:11.5px; color:var(--text-4); }
+
+  /* HUD toast (copy-email confirmation) */
+  #toast { position:fixed; left:50%; bottom:96px; transform:translateX(-50%); z-index:75;
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.8px; color:var(--phosphor);
+    background:rgba(8,22,15,.9); border:1px solid rgba(124,252,166,.4); border-radius:8px;
+    padding:9px 16px; opacity:0; pointer-events:none; transition:opacity .3s ease; }
+  #toast.show { opacity:1; }
 
   /* ===== INFO mode content panel ===== */
   #infoLayer { position: fixed; inset:0; z-index: 15; display:flex; align-items:center; justify-content:center;
@@ -255,9 +295,30 @@
     </div>
   </div>
 
-  <div class="topbar" aria-hidden="true">
-    <span class="brand mono"><span class="dot"></span>RECON&nbsp;<span class="tag">// shivam som bajpai</span></span>
+  <div class="topbar">
+    <span class="brand mono" aria-hidden="true"><span class="dot"></span>RECON&nbsp;<span class="tag">// shivam som bajpai</span></span>
+    <nav aria-label="Fast travel">
+      <button class="cp-jump" data-cp="0" aria-label="Jump to Overwatch">00</button>
+      <button class="cp-jump" data-cp="1" aria-label="Jump to Experience">01</button>
+      <button class="cp-jump" data-cp="2" aria-label="Jump to Work">02</button>
+      <button class="cp-jump" data-cp="3" aria-label="Jump to About">03</button>
+      <button class="cp-jump" data-cp="4" aria-label="Jump to Establish Comms">04</button>
+      <button class="fc-open" id="fcOpen" aria-label="Open fire control command palette">⌘K FIRE CONTROL</button>
+    </nav>
   </div>
+
+  <!-- FIRE CONTROL — fast-travel command palette (Slice 5) -->
+  <div id="fc" role="dialog" aria-modal="true" aria-label="Fire control command palette">
+    <div class="fc-box">
+      <div class="fc-head"><span class="t">FIRE CONTROL</span><span>// fast travel + comms</span><span class="esc">ESC to close</span></div>
+      <div class="fc-input-row"><span class="pmt" aria-hidden="true">&gt;</span>
+        <input id="fcInput" type="text" placeholder="Jump to a checkpoint or run an action…"
+               autocomplete="off" spellcheck="false" aria-label="Search fire control commands"></div>
+      <div id="fcList" role="listbox" aria-label="Commands"></div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
 
   <!-- INFO-mode content panels. Authored statically (not JS-generated) so the
        full content exists in the served DOM with JS disabled (Seam 2: SEO/a11y
