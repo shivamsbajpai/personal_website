@@ -15,7 +15,7 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
 | 3c | Deserted army outposts at checkpoints (graded pads + tank/crates/sandbags/antenna/hedgehogs); mountains removed | DONE ✅ | (army commit) | per feedback; procedural stand-ins, GLTF kit in Slice 2 (#4) |
 | 3d | Travel mechanic: reading-scroll decoupled; travel is **scroll-driven** (scrub camera between checkpoints, holds when idle); over-dune clearance + smoothing | DONE ✅ | (mechanic/scrub/smooth commits) | per feedback "too fast", "multiple scroll moves", "moving on its own → scrollable", "bumpy"; state.js scroll-driven, 11/11 tests |
 | 4 | Local verification | DONE ✅ | — | Playwright: 0 errors, dock + reverse OK |
-| 5 | Owner approval gate | pending | — | awaiting local sign-off before Slice 2 |
+| 5 | Owner approval gate | DONE ✅ | — | owner approved reverse-travel fix; PR #10 opened (Closes #3) |
 
 ## Acceptance criteria → step
 
@@ -30,12 +30,13 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
 ## Resume sequence for next session
 
 1. `cd ~/projects/personal_website && git checkout task/3-recon-core-loop`
-2. Pre-flight: `node --test` (expect 11 pass); `python3 -m http.server 8099` then
-   open `/v2.html`.
-3. If approval gate (step 5) still pending → present local preview for sign-off;
-   reiterate on feedback. Do **not** start Slice 2 (#4) until approved.
-4. On approval: open/refresh the PR (Closes #3), complete its test plan, hand to
-   owner to merge. Then branch Slice 2 from updated `master`.
+2. Pre-flight: `node --test` (expect **13** pass); `python3 -m http.server 8099`
+   then open `/v2.html`.
+3. **PR #10 is open (Closes #3), test plan complete, owner-approved.** Do not
+   merge it yourself — wait for the owner to merge.
+4. **After the owner merges #10:** write `summary.md`; close #3 with a link to
+   the summary; tick the Slice 1 box in epic #2. Then branch Slice 2 (#4) from
+   updated `master`.
 
 ## Plan defects observed
 
