@@ -1,6 +1,6 @@
 # Slice 4 — cinematic fly-in loader · INDEX (resume protocol)
 
-Task: fly-in loader streaming assets into Overwatch · **Closes [#6]** · parent epic [#2]
+Task: fly-in loader streaming assets into Overwatch · **Closes [#6]** · parent epic [#2] · **DONE — merged via [PR-16]**, retrospective in [`summary.md`](summary.md)
 Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md)
 Branch: `task/6-fly-in-loader` · Preview: `python3 -m http.server 8099` → `/v2.html`
 Blocked-by: #3, #4 (DONE — [PR-10], [PR-12]); #5 also shipped ([PR-14])
@@ -15,7 +15,7 @@ Blocked-by: #3, #4 (DONE — [PR-10], [PR-12]); #5 also shipped ([PR-14])
 | 4 | Real asset progress (DF3) | DONE ✅ | d76f9cd | per-GLB `done/total` (simpler + more robust than LoadingManager's growing itemsTotal); `finally` → 1 |
 | 5 | Session / skip / reduced-motion paths (DF4) | DONE ✅ | d76f9cd | wheel/Enter/button skip; sessionStorage; RM never flies |
 | 6 | Local verification | DONE ✅ | — | see evidence block; screenshots in [`evidence/`](evidence/) |
-| 7 | PR + owner gate | in_progress | — | merge authorized for this session |
+| 7 | PR + owner gate | DONE ✅ | cbf4663 | [PR-16] merged (owner-authorized), #6 auto-closed; dust-field tuning call logged in summary |
 
 ## Acceptance criteria → step
 
@@ -27,18 +27,11 @@ Blocked-by: #3, #4 (DONE — [PR-10], [PR-12]); #5 also shipped ([PR-14])
 
 ## Resume sequence for next session
 
-1. `cd ~/projects/personal_website && git checkout task/6-fly-in-loader`
-2. Pre-flight: `node --test` (28 must pass); server on :8099 (check
-   `lsof -iTCP:8099` — likely already running; it serves from disk).
-3. Start at the first non-DONE step. Key integration points in
-   `scene/main.js`: `scheduleOutpostLoad()`/`loadOutposts()` (~line 435),
-   `vantages` (~460), `loop()` camera block + `targetInfo` (~600), `booted`
-   flip (~666). `infoAmt` must init to 0 when the intro will play.
-4. Gotchas: bust the **page URL** (`v2.html?b=N`) for module edits; verify
-   the handoff with a **live rAF trace** (camera position per frame across
-   the intro→loop boundary — no jump); `sessionStorage` persists across
-   reloads in one Playwright page — use a fresh context or clear it to
-   re-test first-load.
+**TASK COMPLETE — nothing to resume.** [PR-16] merged to `master` (`cbf4663`),
+#6 auto-closed, retrospective in [`summary.md`](summary.md). A fresh session
+should move to **Slice 5 ([#7], fast-travel / command palette)** — start at
+`tasks/005_<slug>/`. Carry the gotchas from `summary.md` (CDP cache-off when
+editing `state.js`; fast-travel during the intro should act as a skip).
 
 ## Plan defects observed
 
@@ -103,3 +96,4 @@ reduced motion never flies and never shows the loader.
 [PR-10]: https://github.com/shivamsbajpai/personal_website/pull/10
 [PR-12]: https://github.com/shivamsbajpai/personal_website/pull/12
 [PR-14]: https://github.com/shivamsbajpai/personal_website/pull/14
+[PR-16]: https://github.com/shivamsbajpai/personal_website/pull/16
