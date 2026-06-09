@@ -1,6 +1,6 @@
 # Slice 2 — GLTF outpost + holo→crisp surface · INDEX (resume protocol)
 
-Task: GLTF outpost props + hybrid content surface · **Closes #4** · parent epic **#2**
+Task: GLTF outpost props + hybrid content surface · **Closes #4** · parent epic **#2** · **PR [#12] open — awaiting owner review/merge**
 Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md)
 Branch: `task/4-gltf-outpost-surface` · Preview: `python3 -m http.server 8099` → `/v2.html`
 Blocked-by: #3 (DONE — merged via PR #10)
@@ -16,7 +16,7 @@ Blocked-by: #3 (DONE — merged via PR #10)
 | 5 | CSS3D crisp panel + cross-fade (DS5) | DONE ✅ | cf5a1b0 | **hybrid** (owner-chosen): holo→CSS3D reveal card at the outpost→existing flat crisp panel; reading system untouched. See DS5 amendment in defects |
 | 6 | Reduced-motion path (DS6) | DONE ✅ | 4b11f4b, cf5a1b0 | holo uTime freeze + opacity-only card/panel cross-fade; whole-path verified under emulated `prefers-reduced-motion` at step 7 (travel loop preserved, holo static, card+panel still cross-fade) |
 | 7 | Local verification | DONE ✅ | 30d70aa, e6896e5 | `node --test` 13 pass; Playwright smoke 0 console errors, 8 GLBs 200, full path info→travel→dock verified live on desktop + mobile + reduced-motion. Mobile card clip fixed twice: responsive `cardScale()`/`cardXOff()` (`30d70aa`) **plus a per-frame projected-x clamp** (`e6896e5`) after a live rAF trace showed the frozen-state verify had masked mid-glide clipping (see defects). Evidence screenshots in [`evidence/`](evidence/) |
-| 8 | Owner approval gate | pending | — | sign-off before Slice 3 (#5); bundle deferred visual-tuning calls (prop lighting, holo prominence, mobile card aesthetics) |
+| 8 | Owner approval gate | **in_progress — PR [#12] open** | — | owner reviews/merges [#12] (tuning calls bundled in the PR body: prop lighting, holo prominence, mobile card aesthetics). After merge: `summary.md`, confirm #4 auto-closed, tick box in epic #2 |
 
 ## Acceptance criteria → step
 
@@ -243,7 +243,9 @@ outpost (replaced by DS3).
 
 ## Cross-references
 
-- Issue: #4 (slice) · Epic/PRD: #2 · Blocked-by: #3 (done)
+- Issue: #4 (slice) · Epic/PRD: #2 · Blocked-by: #3 (done) · PR: [#12]
+
+[#12]: https://github.com/shivamsbajpai/personal_website/pull/12
 - Previous slice: [`../001_recon-core-loop/summary.md`](../001_recon-core-loop/summary.md)
 - Next slices: #5 content, #6 fly-in, #7 fast-travel, #8 fallback, #9 cutover
 - Files (to touch): `v2.html`, `scene/main.js`, new `/assets/`, `/assets/CREDITS.md`
