@@ -2,12 +2,15 @@
 // Sunny, more-photoreal 3D Mars desert (shadows + ridged dunes + sand relief +
 // bloom/atmosphere) + scope HUD + the travel<->info optic, driven entirely by
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
-// real content (Slice 3); simple markers stand in for GLTF props (Slice 2).
+// real content (Slice 3). Outpost props render procedurally on first paint,
+// then lazy-swap to a cloned CC0 GLTF kit once loaded (Slice 2, DS2/DS3).
 import { initState, applyScroll, cameraFloat, modeOf, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(pointer: fine)').matches;
@@ -77,6 +80,8 @@ const panels = [...infoLayer.querySelectorAll('.panel')];
 
 /* ---------------- value-noise fbm (module scope: terrain + bump) ----------- */
 const hash = (x, y) => { let h = (x | 0) * 374761393 + (y | 0) * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967295; };
+// Hermite smoothstep; used to choreograph the holo→card→panel cross-fade bands by infoAmt.
+const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 function vnoise(x, y) {
   const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
   const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
@@ -293,11 +298,209 @@ function initScene(renderer) {
     const hh = buildHedgehog(); hh.position.set(12, 0.4, 5); hh.rotation.y = hash(seed, 5) * 6.28; g.add(hh);
     return g;
   }
+  // Procedural camps are the first-paint stand-in AND the graceful fallback
+  // (DS2): if the GLTF kit fails to load we keep these, never a blank pad.
+  const proceduralCamps = [];
   anchors.forEach((a, i) => {
     const camp = buildOutpost(i * 37 + 3);
     camp.position.set(a.x, a.y, a.z); camp.scale.setScalar(1.5);
     scene.add(camp);
+    proceduralCamps.push(camp);
   });
+
+  /* --- holographic field terminal per checkpoint (DS4): an emissive
+     ShaderMaterial screen on a small recon prop. It glows in TRAVEL and
+     fades out as INFO ramps (uOpacity = 1 − infoAmt), so it reads as the
+     "holographic" pre-state of the content surface; Step 5 (DS5) cross-fades
+     it into a crisp CSS3D panel on dock. The shader's scanline/flicker/sweep
+     are all driven by uTime, which the loop freezes under reduced-motion
+     (DS6) → a static phosphor glow, no motion, travel loop untouched. The
+     prop is independent of the procedural↔GLTF camp swap. --- */
+  const holoScreens = [];
+  function makeHoloMaterial() {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },               // driven by 1 − infoAmt each frame
+        uColor: { value: new THREE.Color(0x7cfca6) },   // --phosphor recon-cyan
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+      `,
+      fragmentShader: `
+        precision mediump float;
+        uniform float uTime; uniform float uOpacity; uniform vec3 uColor;
+        varying vec2 vUv;
+        float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+        void main() {
+          vec2 uv = vUv;
+          float scan  = pow(0.5 + 0.5 * sin(uv.y * 150.0 - uTime * 4.0), 1.5);
+          float sweep = smoothstep(0.05, 0.0, abs(uv.y - fract(uTime * 0.12)));
+          float flick = 0.86 + 0.14 * sin(uTime * 26.0) * h21(vec2(floor(uTime * 11.0), 3.0));
+          float bars  = step(0.6, fract(uv.y * 11.0 + 0.2)) * 0.1;
+          float frameDist = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+          float frame = smoothstep(0.028, 0.012, frameDist);
+          float body = (0.22 + scan * 0.4 + sweep * 0.7 + bars) * flick + frame * 0.7;
+          float mask = smoothstep(0.0, 0.02, uv.x) * smoothstep(1.0, 0.98, uv.x)
+                     * smoothstep(0.0, 0.02, uv.y) * smoothstep(1.0, 0.98, uv.y);
+          float intensity = body * mask;
+          gl_FragColor = vec4(uColor * intensity, intensity * uOpacity);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,   // holographic projection glow; picks up bloom (D10)
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+  }
+  function buildHoloTerminal() {
+    const g = new THREE.Group();
+    const footing = pmesh(new THREE.BoxGeometry(1.7, 0.4, 1.3), matMetal); footing.position.y = 0.2; g.add(footing);
+    const post = pmesh(new THREE.CylinderGeometry(0.16, 0.26, 4.2, 8), matPole); post.position.y = 2.2; g.add(post);
+    // Dark "glass" backing so the additive phosphor reads as cyan-on-screen even
+    // when the quad projects against the bright sky (additive alone washes white
+    // there). It fades with the holo (both are TRAVEL-mode elements).
+    const back = new THREE.MeshBasicMaterial({ color: 0x05140d, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+    const backing = new THREE.Mesh(new THREE.PlaneGeometry(9.5, 5.9), back);
+    backing.position.set(0, 6.7, -0.04); backing.renderOrder = 1; g.add(backing);
+    const mat = makeHoloMaterial();
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(9, 5.4), mat);
+    screen.position.set(0, 6.7, 0); screen.renderOrder = 2;   // floats above the stand, facing +z (toward the vantage)
+    g.add(screen);
+    return { group: g, holo: mat, back };
+  }
+  anchors.forEach((a) => {
+    const t = buildHoloTerminal();
+    t.group.position.set(a.x + 6, a.y, a.z + 8);   // front-right of the camp, clear of the tank
+    t.group.rotation.y = -0.2;                       // toe in toward the traverse centreline / camera
+    scene.add(t.group);
+    holoScreens.push({ holo: t.holo, back: t.back });
+  });
+
+  /* --- CSS3D "holo→crisp" reveal cards (DS5): a phosphor terminal card mounted
+     at each outpost terminal, billboarded to the camera. CSS3DRenderer composites
+     a real-DOM card over the WebGL canvas; the card materializes only during the
+     docking transition (holo fades → card resolves at the outpost → the flat
+     reading panel fades in above it). The flat panel's layout/scroll/measure
+     system is untouched, so the Slice-1 "measurable on arrival" invariant holds. --- */
+  const css3d = new CSS3DRenderer();
+  css3d.setSize(innerWidth, innerHeight);
+  css3d.domElement.id = 'css3d';
+  document.body.appendChild(css3d.domElement);
+  infoLayer.style.transition = 'none';   // opacity is now driven per-frame from infoAmt (see loop)
+  const cssScene = new THREE.Scene();
+  // ~1:1 css-px → screen-px at the dock distance (fov 58); billboarded so text stays crisp.
+  // 0.04 is desktop-tuned; on a narrow (portrait/mobile) viewport the same world-anchored
+  // card (a) projects past the right edge because it sits +6 off the centreline and (b)
+  // would clip the screen width. So below the desktop reference we both shrink the card
+  // (width-driven, floored so text stays readable) and reseat it toward the camera
+  // centreline. `k===1` on desktop keeps the original 0.04 + (a.x+6) exactly — no
+  // regression to the already-verified desktop path.
+  const CARD_REF_W = 1200;                                   // width at which 0.04 reads 1:1
+  const cardK = () => Math.min(1, innerWidth / CARD_REF_W);  // 1 on desktop, <1 on mobile
+  const cardScale = () => 0.04 * Math.max(0.6, cardK());     // floor 0.6 → never smaller than 0.024
+  const cardXOff = () => 6 * Math.max(0.35, cardK());        // pull toward centreline on narrow screens
+  const cardTitle = (cp) => { const m = cp.html.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/); return (m ? m[1] : cp.label).replace(/<[^>]+>/g, '').trim(); };
+  const cards = anchors.map((a, i) => {
+    const cp = CHECKPOINTS[i];
+    const el = document.createElement('div');
+    el.className = 'holo-card';
+    el.style.opacity = '0';
+    el.innerHTML = `<div class="hc-head"><span class="hc-cp">${cp.label}</span><span class="hc-lock">● TARGET ACQUIRED</span></div>`
+      + `<div class="hc-title">${cardTitle(cp)}</div>`
+      + `<div class="hc-foot">DECRYPTING INTEL ▸ STAND BY</div>`;
+    const obj = new CSS3DObject(el);
+    obj.scale.setScalar(cardScale());
+    obj.position.set(a.x + cardXOff(), a.y + 6.7, a.z + 8);   // co-located with the holo screen (reseated toward centre on mobile)
+    cssScene.add(obj);
+    return { el, obj, a };
+  });
+  const cardClampV = new THREE.Vector3();   // scratch for the per-frame screen-edge clamp (see loop)
+
+  /* --- GLTF outpost kit: lazy-load after first paint, then swap the
+     procedural camps for a cloned CC0 kit (DS2 lazy/graceful, DS3 clone +
+     arc-compose per checkpoint with seeded variation + shadows). The render
+     loop never awaits a model; a failed load leaves the procedural props. --- */
+  const KIT_BASE = 'assets/outpost/';
+  // name → normalize target (local units, pre 1.5× placement scale).
+  // axis 'y' fits height (the comms mast); otherwise fit the max(x,z) footprint.
+  const KIT = {
+    tank:              { target: 7.6, axis: 'max' },
+    crate:             { target: 1.4, axis: 'max' },
+    'crate-pickup':    { target: 1.7, axis: 'max' },
+    'sandbags-trench': { target: 6.0, axis: 'max' },
+    'sandbags-small':  { target: 2.8, axis: 'max' },
+    antenna:           { target: 5.0, axis: 'y' },
+    'barrier-large':   { target: 3.6, axis: 'max' },
+    'barrier-fixed':   { target: 3.0, axis: 'max' },
+  };
+
+  // Normalize a loaded model to a target size, recenter on x/z, and drop it so
+  // its base sits on the pad (min.y → 0); enable shadows (D10) on every mesh.
+  function prepModel(obj, spec) {
+    obj.updateMatrixWorld(true);
+    let box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const denom = spec.axis === 'y' ? size.y : Math.max(size.x, size.z);
+    if (denom > 1e-4) obj.scale.multiplyScalar(spec.target / denom);
+    obj.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(obj);
+    const c = box.getCenter(new THREE.Vector3());
+    obj.position.x -= c.x; obj.position.z -= c.z; obj.position.y -= box.min.y;
+    obj.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+    return obj;
+  }
+
+  // One camp from the loaded kit, mirroring buildOutpost()'s camera-facing arc
+  // (+z = toward camera). Per-checkpoint variation is seeded via hash (no
+  // Math.random — reproducible, DS3).
+  // +z is toward the camera/vantage: tall backdrop props sit at the back (−z),
+  // low props (sandbags/barriers) flank the front (+z) so the cluster composes
+  // within the docked lens cone instead of one prop blocking centre.
+  function buildGltfOutpost(kit, seed) {
+    const g = new THREE.Group();
+    const place = (name, x, z, yaw) => {
+      const m = kit[name].clone();
+      m.position.x += x; m.position.z += z; m.rotation.y += yaw;
+      g.add(m);
+    };
+    place('tank', -2, 3, 0.5 + hash(seed, 1));             // hero, near centre on the open pad
+    place('antenna', -14, -11, hash(seed, 4) * 6.28);      // shorter comms mast, back-left backdrop
+    place('crate', 7, 2, hash(seed, 3) * 6.28);            // right, mid
+    place('crate-pickup', 9.5, 4.5, hash(seed, 6) * 6.28);
+    place('barrier-large', 11, 7, hash(seed, 5) * 6.28);   // right flank, front
+    place('barrier-fixed', 8, 9.5, hash(seed, 8) * 6.28);
+    place('sandbags-trench', -3, 9, (hash(seed, 2) - 0.5) * 0.6); // low front
+    place('sandbags-small', 3, 10.5, hash(seed, 7) * 6.28);
+    return g;
+  }
+
+  let outpostLoadStarted = false;
+  function scheduleOutpostLoad() {
+    if (outpostLoadStarted) return; outpostLoadStarted = true;
+    const ric = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+    ric(() => loadOutposts(), { timeout: 2000 });
+  }
+
+  async function loadOutposts() {
+    try {
+      const loader = new GLTFLoader();
+      const names = Object.keys(KIT);
+      const loaded = await Promise.all(names.map((n) =>
+        loader.loadAsync(KIT_BASE + n + '.glb').then((gltf) => [n, prepModel(gltf.scene, KIT[n])])));
+      const kit = Object.fromEntries(loaded);
+      anchors.forEach((a, i) => {
+        const camp = buildGltfOutpost(kit, i * 37 + 3);
+        camp.position.set(a.x, a.y, a.z); camp.scale.setScalar(1.5);
+        scene.add(camp);
+        const old = proceduralCamps[i];
+        if (old) { scene.remove(old); old.traverse((n) => { if (n.isMesh) n.geometry.dispose(); }); }
+      });
+    } catch (e) {
+      console.warn('GLTF outpost kit failed to load; keeping procedural props', e);
+    }
+  }
 
   /* --- camera vantages --- */
   const vantages = anchors.map((a) => ({
@@ -380,6 +583,9 @@ function initScene(renderer) {
   addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight);
+    css3d.setSize(innerWidth, innerHeight);
+    const cs = cardScale(), xo = cardXOff();   // keep the reveal card on-screen + readable across aspect changes
+    cards.forEach(c => { c.obj.scale.setScalar(cs); c.obj.position.x = c.a.x + xo; });
   });
   document.addEventListener('visibilitychange', () => { paused = document.hidden; if (!paused) requestAnimationFrame(loop); });
 
@@ -450,8 +656,59 @@ function initScene(renderer) {
     const beamOp = 0.09 + Math.sin((t || 0) * 0.003) * 0.04;
     markers.forEach((m) => { m.beam.material.opacity = beamOp; });
 
+    // Holo→card→panel cross-fade (DS4 holo + DS5 reveal), choreographed by infoAmt
+    // as you dock so one element hands the baton to the next:
+    //   holo  full → gone   across infoAmt 0.05–0.42  (WebGL terminal screen)
+    //   card  in 0.28–0.52, out 0.56–0.74            (CSS3D reveal at the outpost)
+    //   panel in 0.66–0.95                            (flat crisp reading surface)
+    // The card resolves and clears before the panel grows in (a sequential
+    // baton-pass, not a muddy double-exposure), with a sliver of overlap so the
+    // frame never goes empty mid-handoff.
+    const holoFade = 1 - smoothstep(0.05, 0.42, infoAmt);
+    const cardOp = smoothstep(0.28, 0.52, infoAmt) * (1 - smoothstep(0.56, 0.74, infoAmt));
+    const panelOp = smoothstep(0.66, 0.95, infoAmt);
+
+    // DS4 holo: advance the shader clock (frozen at 0 under reduced-motion, DS6 →
+    // static glow) and fade the screen + its dark backing out as INFO ramps.
+    const holoT = reduce ? 0 : (t || 0) * 0.001;
+    holoScreens.forEach((s) => {
+      s.holo.uniforms.uTime.value = holoT;
+      s.holo.uniforms.uOpacity.value = holoFade;
+      s.back.opacity = holoFade * 0.6;
+    });
+
+    // DS5 reveal card: only the docking checkpoint's card is shown; it's pinned at
+    // the terminal and billboarded to the camera so its text stays crisp.
+    camera.updateMatrixWorld();   // fresh matrixWorldInverse for the projection below (render hasn't run yet this frame)
+    cards.forEach((c, i) => {
+      if (i === app.cp && cardOp > 0.001) {
+        c.el.style.opacity = cardOp.toFixed(3);
+        c.obj.quaternion.copy(camera.quaternion);   // face the camera (crisp, no skew)
+        // The card's fade band runs while the camera is still gliding in, so the
+        // world-anchored card can cross the frustum edge exactly when it's most
+        // visible (on a 390px viewport it measured fully off-screen at peak
+        // opacity). Re-seat from the anchor, then clamp the projected x so the
+        // card rides the screen edge and settles onto the terminal as the camera
+        // does — a no-op on any frame where the card already fits.
+        c.obj.position.set(c.a.x + cardXOff(), c.a.y + 6.7, c.a.z + 8);
+        const r = c.el.getBoundingClientRect();
+        if (r.width > 0) {
+          cardClampV.copy(c.obj.position).project(camera);
+          const lim = Math.max(0, 1 - (r.width + 16) / innerWidth);   // half-width + 8px margin, in NDC
+          if (Math.abs(cardClampV.x) > lim) {
+            cardClampV.x = Math.sign(cardClampV.x) * lim;
+            c.obj.position.copy(cardClampV.unproject(camera));
+          }
+        }
+      } else if (c.el.style.opacity !== '0') {
+        c.el.style.opacity = '0';
+      }
+    });
+    infoLayer.style.opacity = panelOp.toFixed(3);   // flat reading panel (layout untouched)
+
     composer.render();
-    if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); }
+    css3d.render(cssScene, camera);
+    if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); scheduleOutpostLoad(); }
     requestAnimationFrame(loop);
   }
 
