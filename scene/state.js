@@ -54,10 +54,12 @@ export function applyScroll(state, delta, contentMax, count, travelLen) {
   return { ...state, travelT: t };
 }
 
-/** Continuous camera position along the checkpoint rail (eased during travel). */
+/** Continuous camera position along the checkpoint rail. Travel is LINEAR in
+ *  scroll (speed proportional to scroll, no mid-gap surge); the renderer's
+ *  low-pass smooths acceleration at scroll start/stop. */
 export function cameraFloat(state) {
   if (state.phase === PHASE.READING) return state.cp;
-  return state.from + (state.to - state.from) * easeInOut(state.travelT);
+  return state.from + (state.to - state.from) * state.travelT;
 }
 
 export function modeOf(state) {
