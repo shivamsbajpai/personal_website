@@ -1,7 +1,8 @@
 # Slice 7 — e2e smoke hardening + cutover · INDEX (resume protocol)
 
 Task: Seam-3 hardening + cutover v2→index · **Closes [#9]** · parent epic [#2]
-Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md)
+Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md) ·
+**CLOSED** — retrospective in [`summary.md`](summary.md)
 Branch: `task/9-e2e-cutover` · Preview: server on :8099 → `/index.html` (post-cutover)
 Blocked-by: #4–#8 (ALL DONE — [PR-12], [PR-14], [PR-16], [PR-18], [PR-20])
 
@@ -18,7 +19,7 @@ Blocked-by: #4–#8 (ALL DONE — [PR-12], [PR-14], [PR-16], [PR-18], [PR-20])
 | 3 | Mobile touch e2e spec (DH2) | DONE ✅ | 25e5b9f | real TouchEvent swipes; fc tap-jump |
 | 4 | Cutover (DH3) | DONE ✅ | 52f077d | meta ported (7 og/twitter tags + canonical); v2 redirect verified |
 | 5 | Full verification (3 seams + mobile) | DONE ✅ | — | see evidence block |
-| 6 | PR for owner review — **left open** | in_progress | — | PR opened with full evidence; owner previews `/index.html` locally, then merges |
+| 6 | PR for owner review — **left open** | DONE ✅ merged 2026-06-10 | [PR-22] | owner merge; pre-merge master sync resolved the v2.html conflict (redirect wins); see [`summary.md`](summary.md) |
 
 ## Acceptance criteria → step
 
@@ -80,6 +81,7 @@ redirects, both URLs work · DH4 owner-merge deploy gate (no self-merge).
 
 [#2]: https://github.com/shivamsbajpai/personal_website/issues/2
 [#9]: https://github.com/shivamsbajpai/personal_website/issues/9
+[PR-22]: https://github.com/shivamsbajpai/personal_website/pull/22
 [PR-12]: https://github.com/shivamsbajpai/personal_website/pull/12
 [PR-14]: https://github.com/shivamsbajpai/personal_website/pull/14
 [PR-16]: https://github.com/shivamsbajpai/personal_website/pull/16

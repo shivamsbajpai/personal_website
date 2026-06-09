@@ -1,7 +1,8 @@
 # Task 008 — Scroll cadence: 3-stroke travel + friction · Closes [#23]
 
 Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md) ·
-Branch `task/23-scroll-cadence` (stacked on `task/9-e2e-cutover`, [PR-22])
+Branch `task/23-scroll-cadence` (stacked on `task/9-e2e-cutover`, [PR-22]) ·
+**CLOSED** — retrospective in [`summary.md`](summary.md)
 
 ## Status
 
@@ -12,7 +13,7 @@ Branch `task/23-scroll-cadence` (stacked on `task/9-e2e-cutover`, [PR-22])
 | 3 | main.js stroke wiring | DONE spec ✅ code ✅ | (feat) | + `window.__optic` read-only debug handle |
 | 4 | hint copy + absorbed-stroke pulse | DONE spec ✅ code ✅ | (feat) | nudge bobs UP only (defect 1) |
 | 5 | e2e updates + full suites | DONE spec ✅ code ✅ | (feat) | 9 e2e pass; cadence spec added |
-| 6 | PR (base task/9-e2e-cutover) | DONE — [PR-24] open, awaiting owner | 0070574 | retargets to `master` when [PR-22] merges |
+| 6 | PR (base task/9-e2e-cutover) | DONE ✅ merged 2026-06-10 | [PR-24] | retargeted to `master` after [PR-22]; see [`summary.md`](summary.md) |
 
 ## AC → step mapping
 
