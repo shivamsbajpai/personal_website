@@ -416,6 +416,7 @@ function initScene(renderer) {
     cssScene.add(obj);
     return { el, obj, a };
   });
+  const cardClampV = new THREE.Vector3();   // scratch for the per-frame screen-edge clamp (see loop)
 
   /* --- GLTF outpost kit: lazy-load after first paint, then swap the
      procedural camps for a cloned CC0 kit (DS2 lazy/graceful, DS3 clone +
@@ -678,10 +679,27 @@ function initScene(renderer) {
 
     // DS5 reveal card: only the docking checkpoint's card is shown; it's pinned at
     // the terminal and billboarded to the camera so its text stays crisp.
+    camera.updateMatrixWorld();   // fresh matrixWorldInverse for the projection below (render hasn't run yet this frame)
     cards.forEach((c, i) => {
       if (i === app.cp && cardOp > 0.001) {
         c.el.style.opacity = cardOp.toFixed(3);
         c.obj.quaternion.copy(camera.quaternion);   // face the camera (crisp, no skew)
+        // The card's fade band runs while the camera is still gliding in, so the
+        // world-anchored card can cross the frustum edge exactly when it's most
+        // visible (on a 390px viewport it measured fully off-screen at peak
+        // opacity). Re-seat from the anchor, then clamp the projected x so the
+        // card rides the screen edge and settles onto the terminal as the camera
+        // does — a no-op on any frame where the card already fits.
+        c.obj.position.set(c.a.x + cardXOff(), c.a.y + 6.7, c.a.z + 8);
+        const r = c.el.getBoundingClientRect();
+        if (r.width > 0) {
+          cardClampV.copy(c.obj.position).project(camera);
+          const lim = Math.max(0, 1 - (r.width + 16) / innerWidth);   // half-width + 8px margin, in NDC
+          if (Math.abs(cardClampV.x) > lim) {
+            cardClampV.x = Math.sign(cardClampV.x) * lim;
+            c.obj.position.copy(cardClampV.unproject(camera));
+          }
+        }
       } else if (c.el.style.opacity !== '0') {
         c.el.style.opacity = '0';
       }
