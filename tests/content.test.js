@@ -12,7 +12,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const v2 = readFileSync(join(root, 'v2.html'), 'utf8');
-const live = readFileSync(join(root, 'index.html'), 'utf8');
+// Verbatim-audit source of truth: the ORIGINAL site, frozen as a fixture
+// (DH1). Post-cutover index.html IS the RECON build, so reading it live
+// would make the audit vacuous; the fixture keeps the guarantee meaningful.
+const live = readFileSync(join(root, 'tests', 'fixtures', 'legacy-index.html'), 'utf8');
 
 // Strip tags, decode nothing (entities must match verbatim too), collapse
 // whitespace — so copy reflowed across source lines still compares equal.
