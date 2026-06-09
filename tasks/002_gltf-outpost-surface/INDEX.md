@@ -11,7 +11,7 @@ Blocked-by: #3 (DONE — merged via PR #10)
 |---|------|-------|--------|-------|
 | 1 | Asset sourcing + license vetting (DS1) | DONE ✅ | 93930ff | owner chose Poly Pizza assembly; 8 Quaternius CC0 GLBs in `assets/outpost/`, all verified Public Domain (CC0), provenance in `assets/CREDITS.md` |
 | 2 | GLTFLoader + lazy-load harness (DS2) | DONE ✅ | 83928e7 | `GLTFLoader` kicked on `booted` via `requestIdleCallback`; render loop never awaits; normalize→recenter→min.y=0→shadows per model; graceful catch keeps procedural |
-| 3 | Per-checkpoint outpost composition (DS3) | DONE ✅ | 83928e7 | `buildGltfOutpost()` clones kit into camera-facing arc, `hash`-seeded per-cp yaw, shadows on every mesh; procedural camps removed + geo disposed on swap |
+| 3 | Per-checkpoint outpost composition (DS3) | DONE ✅ | 83928e7, 2f64c26 | `buildGltfOutpost()` clones kit into camera-facing arc, `hash`-seeded per-cp yaw, shadows on every mesh; procedural camps removed + geo disposed on swap. Scale/arc tuned (`2f64c26`); prop visibility under low sun deferred to owner gate (step 8) |
 | 4 | WebGL holo-screen on a prop (DS4) | pending | — | scanline/flicker ShaderMaterial, visible in TRAVEL |
 | 5 | CSS3D crisp panel + cross-fade (DS5) | pending | — | upgrades D4; preserve Slice 1 invariants |
 | 6 | Reduced-motion path (DS6) | pending | — | static holo, dampened, travel preserved |
@@ -57,7 +57,27 @@ TRAVEL mode.
 
 ## Plan defects observed
 
-_(none yet — log here as they happen, within the commit that introduces the divergence)_
+**ES-module HTTP caching masks edits during browser verification.** When
+iterating on `scene/main.js` with `python3 -m http.server` + Playwright, the
+browser served a *cached* `main.js` across reloads — several tuning passes
+rendered the stale layout while the disk file was correct (a `fetch(...,
+{cache:'no-store'})` confirmed disk was fresh; the running module was not).
+Root cause: the cached **HTML** kept the old `<script>` tag, so a query bump
+on the module src alone never took effect. Fix that worked: bust the **page
+URL** too (`v2.html?b=N`) so the HTML re-parses and re-requests the module.
+For verification only — no cache-bust query ships in `v2.html` (reverted).
+A `window.__build` marker + the live scene/camera probe (read `matrixWorld`
++ project to NDC) were the tools that finally distinguished "stale render"
+from "real layout"; both reverted before commit.
+
+**Docked prop visibility is lighting-bound, not placement-bound.** With the
+arc spread + scaled (commit `2f64c26`), the live NDC probe confirms all 8
+props spread across the frame — but in the docked low-sun view only the
+antenna breaks the dune silhouette; the short props (tank/crates/sandbags)
+sit dark-on-dark in the shadowed foreground. Improving their read is a
+lighting/material call (fill light, or lighter prop materials), not arc
+geometry — defer to the **owner approval gate (step 8)** with a fill-light
+tweak as the likely lever.
 
 ## Carry-forward invariants (from Slice 1 summary — do NOT regress)
 
