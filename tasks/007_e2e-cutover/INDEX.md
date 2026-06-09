@@ -13,12 +13,12 @@ Blocked-by: #4–#8 (ALL DONE — [PR-12], [PR-14], [PR-16], [PR-18], [PR-20])
 
 | # | Step | State | Commit | Notes |
 |---|------|-------|--------|-------|
-| 1 | Freeze verbatim-audit fixture (DH1) | pending | — | `tests/fixtures/legacy-index.html` |
-| 2 | Journey e2e spec (DH2) | pending | — | full desktop loop |
-| 3 | Mobile touch e2e spec (DH2) | pending | — | swipe travel + palette |
-| 4 | Cutover (DH3) | pending | — | index←v2 + meta port; v2 redirects; CNAME/résumé untouched |
-| 5 | Full verification (3 seams + mobile) | pending | — | |
-| 6 | PR for owner review — **left open** | pending | — | owner previews `/index.html` locally, then merges |
+| 1 | Freeze verbatim-audit fixture (DH1) | DONE ✅ | 0c4a82b | audit survives the cutover |
+| 2 | Journey e2e spec (DH2) | DONE ✅ | 25e5b9f | fly-in / advance+INFO / reverse / ⌘K |
+| 3 | Mobile touch e2e spec (DH2) | DONE ✅ | 25e5b9f | real TouchEvent swipes; fc tap-jump |
+| 4 | Cutover (DH3) | DONE ✅ | 52f077d | meta ported (7 og/twitter tags + canonical); v2 redirect verified |
+| 5 | Full verification (3 seams + mobile) | DONE ✅ | — | see evidence block |
+| 6 | PR for owner review — **left open** | in_progress | — | PR opened with full evidence; owner previews `/index.html` locally, then merges |
 
 ## Acceptance criteria → step
 
@@ -42,7 +42,19 @@ Blocked-by: #4–#8 (ALL DONE — [PR-12], [PR-14], [PR-16], [PR-18], [PR-20])
 
 ## Plan defects observed
 
-*(log as they happen, not at session wrap)*
+*(none — slices 4–6 lessons were pre-baked into the spec conventions and held)*
+
+**Step-5 evidence (this session):** Seam 1+2: `node --test` → **43 pass**
+(content floor now reads the deployed `index.html`; verbatim audit reads the
+frozen fixture). Seam 3: `npx playwright test` → **8 pass / 21.9s**
+(first-load fly-in lands at Overwatch · scroll advance + INFO + reverse ·
+⌘K jump by typed name · mobile TouchEvent swipes through reading→travel→dock
++ panel fits 390px · mobile fc tap-jump to COMMS · no-WebGL floor · RM floor
+· ENTER 3D boot) — every spec asserts **0 console errors**. Cutover sanity:
+`/index.html` plays the intro (INBOUND) and lands docked (fresh context,
+0 errors); `/v2.html` → redirects to `/`; `CNAME` + `latest_resume.pdf`
+byte-untouched (`git diff` empty); 7 OG/Twitter tags + canonical + favicon
+present in the deployed head.
 
 ## Carry-forward invariants (Slices 1–6)
 
