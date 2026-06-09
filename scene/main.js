@@ -10,6 +10,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(pointer: fine)').matches;
@@ -79,6 +80,8 @@ const panels = [...infoLayer.querySelectorAll('.panel')];
 
 /* ---------------- value-noise fbm (module scope: terrain + bump) ----------- */
 const hash = (x, y) => { let h = (x | 0) * 374761393 + (y | 0) * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967295; };
+// Hermite smoothstep; used to choreograph the holo→card→panel cross-fade bands by infoAmt.
+const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 function vnoise(x, y) {
   const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
   const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
@@ -375,6 +378,35 @@ function initScene(renderer) {
     holoScreens.push({ holo: t.holo, back: t.back });
   });
 
+  /* --- CSS3D "holo→crisp" reveal cards (DS5): a phosphor terminal card mounted
+     at each outpost terminal, billboarded to the camera. CSS3DRenderer composites
+     a real-DOM card over the WebGL canvas; the card materializes only during the
+     docking transition (holo fades → card resolves at the outpost → the flat
+     reading panel fades in above it). The flat panel's layout/scroll/measure
+     system is untouched, so the Slice-1 "measurable on arrival" invariant holds. --- */
+  const css3d = new CSS3DRenderer();
+  css3d.setSize(innerWidth, innerHeight);
+  css3d.domElement.id = 'css3d';
+  document.body.appendChild(css3d.domElement);
+  infoLayer.style.transition = 'none';   // opacity is now driven per-frame from infoAmt (see loop)
+  const cssScene = new THREE.Scene();
+  const CARD_SCALE = 0.04;   // ~1:1 css-px → screen-px at the dock distance (fov 58); billboarded so text stays crisp
+  const cardTitle = (cp) => { const m = cp.html.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/); return (m ? m[1] : cp.label).replace(/<[^>]+>/g, '').trim(); };
+  const cards = anchors.map((a, i) => {
+    const cp = CHECKPOINTS[i];
+    const el = document.createElement('div');
+    el.className = 'holo-card';
+    el.style.opacity = '0';
+    el.innerHTML = `<div class="hc-head"><span class="hc-cp">${cp.label}</span><span class="hc-lock">● TARGET ACQUIRED</span></div>`
+      + `<div class="hc-title">${cardTitle(cp)}</div>`
+      + `<div class="hc-foot">DECRYPTING INTEL ▸ STAND BY</div>`;
+    const obj = new CSS3DObject(el);
+    obj.scale.setScalar(CARD_SCALE);
+    obj.position.set(a.x + 6, a.y + 6.7, a.z + 8);   // co-located with the holo screen
+    cssScene.add(obj);
+    return { el, obj };
+  });
+
   /* --- GLTF outpost kit: lazy-load after first paint, then swap the
      procedural camps for a cloned CC0 kit (DS2 lazy/graceful, DS3 clone +
      arc-compose per checkpoint with seeded variation + shadows). The render
@@ -540,6 +572,7 @@ function initScene(renderer) {
   addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight);
+    css3d.setSize(innerWidth, innerHeight);
   });
   document.addEventListener('visibilitychange', () => { paused = document.hidden; if (!paused) requestAnimationFrame(loop); });
 
@@ -610,18 +643,41 @@ function initScene(renderer) {
     const beamOp = 0.09 + Math.sin((t || 0) * 0.003) * 0.04;
     markers.forEach((m) => { m.beam.material.opacity = beamOp; });
 
-    // Holo terminals (DS4): advance the shader clock and fade by 1 − infoAmt so
-    // they're a TRAVEL-mode element. Reduced-motion (DS6) freezes uTime at 0 →
-    // static phosphor glow, no flicker/sweep.
+    // Holo→card→panel cross-fade (DS4 holo + DS5 reveal), choreographed by infoAmt
+    // as you dock so one element hands the baton to the next:
+    //   holo  full → gone   across infoAmt 0.05–0.42  (WebGL terminal screen)
+    //   card  in 0.28–0.52, out 0.56–0.74            (CSS3D reveal at the outpost)
+    //   panel in 0.66–0.95                            (flat crisp reading surface)
+    // The card resolves and clears before the panel grows in (a sequential
+    // baton-pass, not a muddy double-exposure), with a sliver of overlap so the
+    // frame never goes empty mid-handoff.
+    const holoFade = 1 - smoothstep(0.05, 0.42, infoAmt);
+    const cardOp = smoothstep(0.28, 0.52, infoAmt) * (1 - smoothstep(0.56, 0.74, infoAmt));
+    const panelOp = smoothstep(0.66, 0.95, infoAmt);
+
+    // DS4 holo: advance the shader clock (frozen at 0 under reduced-motion, DS6 →
+    // static glow) and fade the screen + its dark backing out as INFO ramps.
     const holoT = reduce ? 0 : (t || 0) * 0.001;
-    const holoOp = 1 - infoAmt;
     holoScreens.forEach((s) => {
       s.holo.uniforms.uTime.value = holoT;
-      s.holo.uniforms.uOpacity.value = holoOp;
-      s.back.opacity = holoOp * 0.6;
+      s.holo.uniforms.uOpacity.value = holoFade;
+      s.back.opacity = holoFade * 0.6;
     });
 
+    // DS5 reveal card: only the docking checkpoint's card is shown; it's pinned at
+    // the terminal and billboarded to the camera so its text stays crisp.
+    cards.forEach((c, i) => {
+      if (i === app.cp && cardOp > 0.001) {
+        c.el.style.opacity = cardOp.toFixed(3);
+        c.obj.quaternion.copy(camera.quaternion);   // face the camera (crisp, no skew)
+      } else if (c.el.style.opacity !== '0') {
+        c.el.style.opacity = '0';
+      }
+    });
+    infoLayer.style.opacity = panelOp.toFixed(3);   // flat reading panel (layout untouched)
+
     composer.render();
+    css3d.render(cssScene, camera);
     if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); scheduleOutpostLoad(); }
     requestAnimationFrame(loop);
   }
