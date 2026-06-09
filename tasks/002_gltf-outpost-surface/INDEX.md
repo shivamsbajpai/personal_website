@@ -13,8 +13,8 @@ Blocked-by: #3 (DONE — merged via PR #10)
 | 2 | GLTFLoader + lazy-load harness (DS2) | DONE ✅ | 83928e7 | `GLTFLoader` kicked on `booted` via `requestIdleCallback`; render loop never awaits; normalize→recenter→min.y=0→shadows per model; graceful catch keeps procedural |
 | 3 | Per-checkpoint outpost composition (DS3) | DONE ✅ | 83928e7, 2f64c26 | `buildGltfOutpost()` clones kit into camera-facing arc, `hash`-seeded per-cp yaw, shadows on every mesh; procedural camps removed + geo disposed on swap. Scale/arc tuned (`2f64c26`); prop visibility under low sun deferred to owner gate (step 8) |
 | 4 | WebGL holo-screen on a prop (DS4) | DONE ✅ | 4b11f4b | emissive scanline/flicker/sweep ShaderMaterial + dark glass backing on a field-terminal prop per checkpoint; fades by 1−infoAmt; uTime freezes under reduced-motion |
-| 5 | CSS3D crisp panel + cross-fade (DS5) | pending | — | upgrades D4; preserve Slice 1 invariants |
-| 6 | Reduced-motion path (DS6) | holo done; finalize at 7 | 4b11f4b | holo uTime freeze landed alongside step 4; whole-path render verify deferred to step 7 |
+| 5 | CSS3D crisp panel + cross-fade (DS5) | DONE ✅ | cf5a1b0 | **hybrid** (owner-chosen): holo→CSS3D reveal card at the outpost→existing flat crisp panel; reading system untouched. See DS5 amendment in defects |
+| 6 | Reduced-motion path (DS6) | holo+card done; finalize at 7 | 4b11f4b, cf5a1b0 | holo uTime freeze (step 4) + opacity-only card/panel cross-fade (reduced-motion-safe); whole-path render verify at step 7 |
 | 7 | Local verification | pending | — | node tests + Playwright smoke |
 | 8 | Owner approval gate | pending | — | sign-off before Slice 3 (#5) |
 
@@ -41,16 +41,24 @@ Blocked-by: #3 (DONE — merged via PR #10)
    per-anchor placement loop pushing `{holo, back}` into `holoScreens`. The
    `loop()` advances `uTime` (frozen to 0 under `reduce`) and fades both the
    shader (`uOpacity`) and the backing (`opacity`) by `1 − infoAmt`.
-5. **Next = Step 5 (CSS3DRenderer crisp panel + cross-fade, DS5 — upgrades D4).**
-   The holo already fades to 0 on dock (verified: settled at a checkpoint →
-   holo `uOpacity`/backing `opacity` both 0, screen centred at NDC≈(0.26, 0.01)).
-   Mount the real-DOM panel via CSS3DRenderer at that same transform and
-   cross-fade holo→crisp as `infoAmt` ramps. Preserve Slice-1 invariants
-   (panels measurable on arrival, DOM always present).
-6. Then Step 6 (reduced-motion path finalize — holo freeze already in), Step 7
-   (verify: `node --test` + Playwright smoke incl. an emulated
-   `prefers-reduced-motion` render check), Step 8 (owner approval gate). Keep
-   Slice 1 invariants intact (see "Carry-forward invariants").
+5. **Step 5 DONE (`cf5a1b0`).** Owner chose the **hybrid** DS5 (see amendment in
+   defects). In `scene/main.js`: `CSS3DRenderer` + a `cssScene`, a phosphor
+   `.holo-card` per checkpoint (`cards[]`) mounted at the terminal world position
+   and billboarded each frame (`obj.quaternion.copy(camera.quaternion)`) for
+   crisp text. The `loop()` choreographs a `smoothstep`-banded baton-pass by
+   `infoAmt` (`holoFade` / `cardOp` / `panelOp`); `#infoLayer` opacity is now
+   driven per-frame (its CSS transition disabled) instead of the `body.info`
+   class. `css3d.render(cssScene, camera)` runs after `composer.render()`. CSS
+   for `.holo-card`/`#css3d` is in `v2.html`. The flat panel's layout/scroll/
+   measure path is untouched.
+6. **Next = Step 7 (verify) + Step 6 finalize.** Step 6's holo freeze + opacity-
+   only card/panel cross-fade are already reduced-motion-safe; **Step 7** is the
+   remaining verification: `node --test` (13) + Playwright smoke, **including an
+   emulated `prefers-reduced-motion` render check** (confirm holo static / travel
+   loop preserved / card+panel still cross-fade) and a mobile-width pass (card
+   `CARD_SCALE` is fov-tuned for desktop; re-check at <768px). Then **Step 8**
+   (owner approval gate) — bundle the deferred tuning calls below. Keep Slice-1
+   invariants intact (see "Carry-forward invariants").
 
 **Step 4 verification evidence (this session):** `node --test` → 13 pass; shader
 **compiled with 0 console errors/warnings** (a compile failure logs a
@@ -61,6 +69,18 @@ showed the cyan scanlines, frame glow, and bloom halo reading cleanly **on the
 dark glass backing** against both sky and dune — see "Plan defects" for why the
 backing was needed. Instrumentation (`window.__holo` probe hook) was removed
 before commit (grep clean).
+
+**Step 5 verification evidence (this session):** `node --test` → 13 pass;
+`node --check scene/main.js` → syntax OK; **0 console errors/warnings** (CSS3DRenderer
+import resolved). DOM probe: `#css3d` container + **3 `.holo-card`s** built. Froze
+`infoAmt` via a temp hook (`window.__infoHold`, removed before commit) to capture
+the transition: at 0.5 → holo gone, **CSS3D card crisp at the terminal** (header +
+2-line title + "DECRYPTING INTEL" foot, billboarded), flat panel hidden; at 1.0 →
+card gone, flat amber reading panel + DoF blur on the outpost; at the 0.70 crossover
+→ card 0.13 / panel 0.05 (soft dissolve, **no double-image** after retightening the
+bands from an earlier 0.8 overlap that doubled the title). **Reading invariant held:**
+in-panel scroll moved `.panel-scroll` `translateY(0→−197px)` then released to travel
+once content ran out — content stays measurable. Grep clean of debug hooks.
 
 **Step 2/3 verification evidence (prior session):** `node --test` → 13 pass;
 Playwright smoke on `/v2.html` → 0 console errors/warnings, all 8 GLBs `200`,
@@ -115,6 +135,23 @@ should be on approach (size / placement height / a lower seat against the dunes)
 is a visual call — defer to the **owner approval gate (step 8)**, same as the
 docked-prop-visibility lighting defect above. Likely levers: enlarge the screen,
 seat it lower so it backs onto a dune, or nudge it toward the traverse centreline.
+
+**DS5 amended to a hybrid (owner-approved) — CSS3D *reveal card*, not a CSS3D
+*reading panel*.** The locked DS5 said "CSS3D-mounted real-DOM panel." On reaching
+implementation, mounting the *reading* panel in CSS3D was assessed as high-risk for
+the core reading UX: CSS3D text blurs unless the billboard+distance-scale factor is
+tuned exactly per resolution/fov, and it would force re-plumbing the working
+scroll/measure system (the Slice-1 "measurable on arrival" invariant). The "crisp"
+payoff is also partly redundant since the flat panel is already crisp DOM. Offered
+the owner three options (full CSS3D / hybrid / anchored screen-space); owner chose
+**hybrid**: a CSS3D *reveal card* (compact phosphor terminal card — label + title +
+"DECRYPTING" — mounted at the outpost, billboarded) materializes during the docking
+transition as the holo fades, then hands off to the **existing flat crisp reading
+panel** for the actual read. Satisfies the AC ("dock cross-fades the holo into a
+crisp panel framed by the outpost") with the reading system untouched. The card is
+*transitional only* (visible solely in the `infoAmt` 0.28–0.74 band), so it never
+competes with reading. `CARD_SCALE=0.04` is fov-58-tuned for ~1:1 desktop crispness
+— **re-check at mobile width (step 7).**
 
 ## Carry-forward invariants (from Slice 1 summary — do NOT regress)
 
