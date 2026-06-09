@@ -94,7 +94,7 @@
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); overflow:hidden;
     transform: scale(.985); transition: transform .45s ease; pointer-events:auto;
   }
-  body.info .panel.active { display:flex; }
+  .panel.active { display:flex; }            /* always laid out so it is measurable on arrival */
   body.info .panel.active { transform: none; }
   .panel-head { display:flex; align-items:center; gap:12px; padding:14px 22px;
     border-bottom:1px solid var(--border-subtle); font-family:'JetBrains Mono',monospace;

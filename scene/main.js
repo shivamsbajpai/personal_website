@@ -329,7 +329,17 @@ function initScene(renderer) {
     const body = panel.querySelector('.panel-body'), inner = panel.querySelector('.panel-scroll');
     return Math.max(0, inner.scrollHeight - body.clientHeight);
   }
-  const scroll = (d) => { app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length, TRAVEL_LEN); };
+  const scroll = (d) => {
+    app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length, TRAVEL_LEN);
+    // On arrival, activate the panel synchronously so its contentMax is measurable
+    // (not 0 during the info fade-in) — otherwise the next scroll would skip the
+    // checkpoint. Then clamp readScroll (handles the cancel sentinel) and re-apply.
+    if (app.phase === PHASE.READING) {
+      setActivePanel(app.cp);
+      const m = curContentMax(); if (app.readScroll > m) app.readScroll = m;
+      setActivePanel(app.cp);
+    }
+  };
 
   addEventListener('wheel', (e) => { e.preventDefault(); scroll(e.deltaY); }, { passive: false });
 

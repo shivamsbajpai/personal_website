@@ -39,8 +39,15 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
 
 ## Plan defects observed
 
-- None yet. (DoF is intentionally a CSS approximation in Slice 1 — see D3; not a
-  defect, a scoped decision.)
+- **Checkpoint skipped because the panel wasn't measurable on arrival.** With
+  scroll-driven travel, arriving at a checkpoint left the content panel
+  `display:none` for the few frames the info-fade ramped up, so `curContentMax()`
+  read 0 → the next scroll saw "already at end" and immediately travelled on,
+  skipping the checkpoint (content "not visible at the second checkpoint"). Fix:
+  make `.panel.active` always `display:flex` (visibility via `#infoLayer` opacity)
+  so it is measurable immediately, and activate the panel synchronously in the
+  scroll handler before measuring/clamping. The DoF CSS approximation (D3) remains
+  a scoped decision, not a defect.
 
 ## Locked decisions reference
 
