@@ -305,6 +305,76 @@ function initScene(renderer) {
     proceduralCamps.push(camp);
   });
 
+  /* --- holographic field terminal per checkpoint (DS4): an emissive
+     ShaderMaterial screen on a small recon prop. It glows in TRAVEL and
+     fades out as INFO ramps (uOpacity = 1 − infoAmt), so it reads as the
+     "holographic" pre-state of the content surface; Step 5 (DS5) cross-fades
+     it into a crisp CSS3D panel on dock. The shader's scanline/flicker/sweep
+     are all driven by uTime, which the loop freezes under reduced-motion
+     (DS6) → a static phosphor glow, no motion, travel loop untouched. The
+     prop is independent of the procedural↔GLTF camp swap. --- */
+  const holoScreens = [];
+  function makeHoloMaterial() {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },               // driven by 1 − infoAmt each frame
+        uColor: { value: new THREE.Color(0x7cfca6) },   // --phosphor recon-cyan
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+      `,
+      fragmentShader: `
+        precision mediump float;
+        uniform float uTime; uniform float uOpacity; uniform vec3 uColor;
+        varying vec2 vUv;
+        float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+        void main() {
+          vec2 uv = vUv;
+          float scan  = pow(0.5 + 0.5 * sin(uv.y * 150.0 - uTime * 4.0), 1.5);
+          float sweep = smoothstep(0.05, 0.0, abs(uv.y - fract(uTime * 0.12)));
+          float flick = 0.86 + 0.14 * sin(uTime * 26.0) * h21(vec2(floor(uTime * 11.0), 3.0));
+          float bars  = step(0.6, fract(uv.y * 11.0 + 0.2)) * 0.1;
+          float frameDist = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+          float frame = smoothstep(0.028, 0.012, frameDist);
+          float body = (0.22 + scan * 0.4 + sweep * 0.7 + bars) * flick + frame * 0.7;
+          float mask = smoothstep(0.0, 0.02, uv.x) * smoothstep(1.0, 0.98, uv.x)
+                     * smoothstep(0.0, 0.02, uv.y) * smoothstep(1.0, 0.98, uv.y);
+          float intensity = body * mask;
+          gl_FragColor = vec4(uColor * intensity, intensity * uOpacity);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,   // holographic projection glow; picks up bloom (D10)
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+  }
+  function buildHoloTerminal() {
+    const g = new THREE.Group();
+    const footing = pmesh(new THREE.BoxGeometry(1.7, 0.4, 1.3), matMetal); footing.position.y = 0.2; g.add(footing);
+    const post = pmesh(new THREE.CylinderGeometry(0.16, 0.26, 4.2, 8), matPole); post.position.y = 2.2; g.add(post);
+    // Dark "glass" backing so the additive phosphor reads as cyan-on-screen even
+    // when the quad projects against the bright sky (additive alone washes white
+    // there). It fades with the holo (both are TRAVEL-mode elements).
+    const back = new THREE.MeshBasicMaterial({ color: 0x05140d, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+    const backing = new THREE.Mesh(new THREE.PlaneGeometry(9.5, 5.9), back);
+    backing.position.set(0, 6.7, -0.04); backing.renderOrder = 1; g.add(backing);
+    const mat = makeHoloMaterial();
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(9, 5.4), mat);
+    screen.position.set(0, 6.7, 0); screen.renderOrder = 2;   // floats above the stand, facing +z (toward the vantage)
+    g.add(screen);
+    return { group: g, holo: mat, back };
+  }
+  anchors.forEach((a) => {
+    const t = buildHoloTerminal();
+    t.group.position.set(a.x + 6, a.y, a.z + 8);   // front-right of the camp, clear of the tank
+    t.group.rotation.y = -0.2;                       // toe in toward the traverse centreline / camera
+    scene.add(t.group);
+    holoScreens.push({ holo: t.holo, back: t.back });
+  });
+
   /* --- GLTF outpost kit: lazy-load after first paint, then swap the
      procedural camps for a cloned CC0 kit (DS2 lazy/graceful, DS3 clone +
      arc-compose per checkpoint with seeded variation + shadows). The render
@@ -539,6 +609,17 @@ function initScene(renderer) {
     dust.position.set(camera.position.x, 0, camera.position.z);
     const beamOp = 0.09 + Math.sin((t || 0) * 0.003) * 0.04;
     markers.forEach((m) => { m.beam.material.opacity = beamOp; });
+
+    // Holo terminals (DS4): advance the shader clock and fade by 1 − infoAmt so
+    // they're a TRAVEL-mode element. Reduced-motion (DS6) freezes uTime at 0 →
+    // static phosphor glow, no flicker/sweep.
+    const holoT = reduce ? 0 : (t || 0) * 0.001;
+    const holoOp = 1 - infoAmt;
+    holoScreens.forEach((s) => {
+      s.holo.uniforms.uTime.value = holoT;
+      s.holo.uniforms.uOpacity.value = holoOp;
+      s.back.opacity = holoOp * 0.6;
+    });
 
     composer.render();
     if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); scheduleOutpostLoad(); }
