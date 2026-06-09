@@ -6,7 +6,7 @@
 <title>Shivam Som Bajpai</title>
 <meta name="description" content="Builder. Maker. Human-AI collaborator. Portfolio of Shivam Som Bajpai.">
 <meta name="author" content="Shivam Som Bajpai">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#08090a">
 
 <link rel="canonical" href="https://shivambajpai.com">
 
@@ -21,338 +21,272 @@
 <meta name="twitter:title" content="Shivam Som Bajpai">
 <meta name="twitter:description" content="Builder. Maker. Human-AI collaborator. Portfolio of Shivam Som Bajpai.">
 
-<!-- Inline SVG favicon (accent mark on dark bg) — no external file dependency -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a0a'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='18' font-weight='700' text-anchor='middle' fill='%23c8a2ff'%3ES%3C/text%3E%3C/svg%3E">
+<!-- Inline SVG favicon -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2308090a'/%3E%3Ctext x='16' y='22' font-family='Inter,sans-serif' font-size='17' font-weight='600' text-anchor='middle' fill='%237170ff'%3ES%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+
 <style>
   :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --border: #1e1e1e;
-    --text: #e0e0e0;
-    --muted: #6b6b6b;
-    --accent: #c8a2ff;
-    --accent-dim: #7c5aad;
-    --green: #4ade80;
-    --blue: #60a5fa;
-    --amber: #fbbf24;
+    /* Linear-inspired surfaces */
+    --bg: #08090a;
+    --panel: #0f1011;
+    --surface: #191a1b;
+    --surface-2: #28282c;
+
+    /* Text */
+    --text: #f7f8f8;
+    --text-2: #d0d6e0;
+    --text-3: #8a8f98;
+    --text-4: #62666d;
+
+    /* Brand indigo-violet — the only chromatic color */
+    --brand: #5e6ad2;
+    --accent: #7170ff;
+    --accent-hover: #828fff;
+    --green: #10b981;
+
+    /* Borders */
+    --border: rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --border-solid: #23252a;
+
+    --card: rgba(255, 255, 255, 0.02);
+    --card-hover: rgba(255, 255, 255, 0.04);
+    --max: 720px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   html { scroll-behavior: smooth; }
 
-  /* Skip to content (visually hidden until focused) */
+  body {
+    font-family: 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv01' 1, 'ss03' 1;
+    background: var(--bg);
+    color: var(--text-2);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection { background: rgba(113, 112, 255, 0.3); color: #fff; }
+
+  a { color: var(--accent); text-decoration: none; transition: color 0.15s, opacity 0.15s; }
+  a:hover { color: var(--accent-hover); }
+
+  .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  mono, .mono { font-family: ui-monospace, 'SF Mono', 'Berkeley Mono', Menlo, monospace; }
+
+  /* Skip link */
   .skip-link {
-    position: absolute;
-    left: 8px;
-    top: -48px;
-    z-index: 200;
-    padding: 8px 14px;
-    font-size: 12px;
-    background: var(--surface);
-    border: 1px solid var(--accent-dim);
-    border-radius: 4px;
-    color: var(--accent);
+    position: absolute; left: 8px; top: -48px; z-index: 200;
+    padding: 8px 14px; font-size: 12px; background: var(--surface);
+    border: 1px solid var(--brand); border-radius: 6px; color: var(--text);
     transition: top 0.2s;
   }
-  .skip-link:focus { top: 8px; opacity: 1; }
+  .skip-link:focus { top: 8px; }
 
-  /* Sticky top nav */
+  /* Sticky nav */
   .site-nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(10, 10, 10, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8, 9, 10, 0.72);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
   }
-  .site-nav .nav-inner {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 12px 24px;
-    display: flex;
-    gap: 24px;
+  .nav-inner {
+    max-width: var(--max); margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; gap: 24px;
   }
-  .site-nav a {
-    font-size: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-    border-bottom: 1px solid transparent;
-    padding-bottom: 2px;
-    transition: color 0.2s, border-color 0.2s;
+  .nav-brand {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px; letter-spacing: -0.2px; color: var(--text);
+    margin-right: auto; display: flex; align-items: center; gap: 8px;
   }
-  .site-nav a:hover,
-  .site-nav a:focus-visible {
-    color: var(--accent);
-    border-color: var(--accent-dim);
-    opacity: 1;
+  .nav-brand .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px rgba(113,112,255,0.7);
   }
-
-  body {
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-    -webkit-font-smoothing: antialiased;
+  .site-nav a:not(.nav-cta) {
+    font-size: 13px; font-weight: 510; color: var(--text-3);
+    transition: color 0.15s;
   }
-
-  ::selection {
-    background: var(--accent-dim);
-    color: #fff;
+  .site-nav a:not(.nav-cta):hover { color: var(--text); }
+  .nav-cta {
+    font-size: 13px; font-weight: 510; color: #fff !important;
+    background: var(--brand); padding: 6px 14px; border-radius: 6px;
+    transition: background 0.15s;
   }
-
-  a {
-    color: var(--accent);
-    text-decoration: none;
-    transition: opacity 0.2s;
-  }
-  a:hover { opacity: 0.75; }
-
-  .container {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
+  .nav-cta:hover { background: var(--accent-hover); }
 
   /* Hero */
   .hero {
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 80px 0;
+    position: relative; min-height: 88vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 96px 0 80px;
   }
-
+  .hero::before {
+    content: ''; position: absolute; inset: -120px 0 auto 0; height: 480px;
+    background: radial-gradient(60% 60% at 50% 0%, rgba(94, 106, 210, 0.14), transparent 72%);
+    pointer-events: none; z-index: -1;
+  }
   .hero-label {
-    font-size: 12px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px; letter-spacing: 0.5px; text-transform: lowercase;
+    color: var(--text-4); margin-bottom: 24px;
+    display: inline-flex; align-items: center; gap: 8px;
   }
-
+  .hero-label::before {
+    content: ''; width: 24px; height: 1px; background: var(--border);
+  }
   .hero h1 {
-    font-size: clamp(28px, 5vw, 42px);
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    margin-bottom: 24px;
-    color: #fff;
+    font-size: clamp(34px, 6vw, 56px); font-weight: 510; line-height: 1.02;
+    letter-spacing: -1.4px; color: var(--text); margin-bottom: 28px;
   }
-
   .hero h1 .accent { color: var(--accent); }
-
   .hero-bio {
-    font-size: 15px;
-    color: var(--muted);
-    max-width: 540px;
-    margin-bottom: 40px;
+    font-size: 18px; font-weight: 400; line-height: 1.62;
+    color: var(--text-3); max-width: 580px; letter-spacing: -0.16px;
+    margin-bottom: 36px;
   }
-
-  .hero-links {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
+  .hero-links { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    font-size: 14px; font-weight: 510; border-radius: 6px;
+    padding: 9px 16px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px;
   }
-
-  .hero-links a {
-    font-size: 13px;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 2px;
-    transition: color 0.2s, border-color 0.2s;
+  .btn-primary { background: var(--brand); color: #fff !important; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.03); color: var(--text-2) !important;
+    border: 1px solid var(--border);
   }
-  .hero-links a:hover {
-    color: var(--accent);
-    border-color: var(--accent-dim);
-    opacity: 1;
-  }
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); color: var(--text) !important; }
 
   /* Sections */
-  section {
-    padding: 80px 0;
-    border-top: 1px solid var(--border);
-  }
-
+  section { padding: 72px 0; border-top: 1px solid var(--border-subtle); }
   .section-label {
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--accent-dim);
-    margin-bottom: 40px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px; font-weight: 510; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 32px;
+    display: flex; align-items: center; gap: 10px;
   }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
 
-  /* Project Cards */
+  /* Project cards */
   .project {
-    margin-bottom: 48px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px 24px; margin-bottom: 14px;
+    transition: background 0.18s, border-color 0.18s, transform 0.18s;
   }
-
+  .project:hover {
+    background: var(--card-hover); border-color: rgba(255, 255, 255, 0.13);
+    transform: translateY(-1px);
+  }
   .project-header {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px; flex-wrap: wrap;
   }
-
   .project-name {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
+    font-size: 19px; font-weight: 590; letter-spacing: -0.3px; color: var(--text);
   }
-
-  .project-tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
+  .project-tags { display: flex; gap: 6px; flex-wrap: wrap; }
   .tag {
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 2px 8px;
-    border-radius: 3px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--muted);
+    font-size: 11px; font-weight: 510; letter-spacing: 0.2px;
+    padding: 2px 10px; border-radius: 9999px;
+    background: transparent; border: 1px solid var(--border-solid);
+    color: var(--text-2); display: inline-flex; align-items: center; gap: 5px;
   }
-  .tag.go { color: var(--blue); border-color: #1e3a5f; }
-  .tag.js { color: var(--amber); border-color: #4a3a10; }
-  .tag.python { color: var(--green); border-color: #1a3a1a; }
-  .tag.kotlin { color: var(--accent); border-color: #2a1a3a; }
-  .tag.swift { color: #f97316; border-color: #3a2010; }
-  .tag.shipped { color: var(--green); border-color: #1a3a1a; background: #0a1a0a; }
-  .tag.react { color: var(--blue); border-color: #1e3a5f; }
-  .tag.ts { color: var(--blue); border-color: #1e3a5f; }
-  .tag.cloudflare { color: #f97316; border-color: #3a2010; }
-  .tag.ml { color: #f472b6; border-color: #3a1a2a; }
-  .tag.private { color: var(--muted); border-color: var(--border); font-style: italic; }
+  .tag::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-4);
+  }
+  .tag.go::before { background: #60a5fa; }
+  .tag.python::before { background: var(--green); }
+  .tag.kotlin::before { background: var(--accent); }
+  .tag.react::before { background: #38bdf8; }
+  .tag.js::before { background: #fbbf24; }
+  .tag.ml::before { background: #f472b6; }
+  .tag.cloudflare::before { background: #f97316; }
+  .tag.shipped { color: var(--green); border-color: rgba(16,185,129,0.3); }
+  .tag.shipped::before { background: var(--green); box-shadow: 0 0 6px rgba(16,185,129,0.6); }
+  .tag.private { color: var(--text-4); font-style: italic; }
+  .tag.private::before { display: none; }
 
   .project-desc {
-    font-size: 14px;
-    color: var(--muted);
-    margin-bottom: 12px;
-    max-width: 600px;
+    font-size: 14.5px; font-weight: 400; line-height: 1.62;
+    color: var(--text-3); letter-spacing: -0.16px; max-width: 620px;
   }
-
-  .project-links {
-    display: flex;
-    gap: 16px;
-  }
-
-  .project-links a {
-    font-size: 12px;
-    color: var(--accent-dim);
-  }
-  .project-links a:hover { color: var(--accent); opacity: 1; }
+  .project-links { display: flex; gap: 18px; margin-top: 14px; }
+  .project-links a { font-size: 13px; font-weight: 510; }
 
   /* About */
-  .about-text {
-    font-size: 14px;
-    color: var(--muted);
-    max-width: 600px;
-  }
+  .about-text { font-size: 16px; line-height: 1.68; color: var(--text-2); max-width: 620px; }
   .about-text p { margin-bottom: 16px; }
-  .about-text strong { color: var(--text); font-weight: 500; }
+  .about-text strong { color: var(--text); font-weight: 590; }
 
   .stack-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    margin-top: 32px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px; margin-top: 32px;
   }
-
   .stack-item {
-    padding: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    padding: 18px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px;
   }
-
   .stack-item h4 {
-    font-size: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--accent-dim);
-    margin-bottom: 8px;
-    font-weight: 500;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 10px; font-weight: 510;
   }
+  .stack-item p { font-size: 13.5px; color: var(--text-3); line-height: 1.5; }
 
-  .stack-item p {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-
-  /* Tvash section */
+  /* Tvash featured block */
   .tvash-block {
-    padding: 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent-dim);
-    border-radius: 6px;
-    margin-top: 32px;
+    margin-top: 32px; padding: 22px 24px;
+    background: linear-gradient(180deg, rgba(94, 106, 210, 0.08), rgba(94, 106, 210, 0.02));
+    border: 1px solid rgba(113, 112, 255, 0.18);
+    border-left: 2px solid var(--brand); border-radius: 12px;
   }
-
   .tvash-block h3 {
-    font-size: 14px;
-    color: #fff;
-    margin-bottom: 8px;
-    font-weight: 500;
+    font-size: 15px; color: var(--text); margin-bottom: 8px; font-weight: 590;
+    display: flex; align-items: center; gap: 9px; letter-spacing: -0.2px;
   }
-
-  .tvash-block p {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.6;
+  .tvash-block h3 .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px rgba(113,112,255,0.7);
   }
+  .tvash-block p { font-size: 14px; color: var(--text-3); line-height: 1.62; }
 
   /* Footer */
-  footer {
-    padding: 40px 0;
-    border-top: 1px solid var(--border);
-    text-align: center;
-  }
-
+  footer { padding: 40px 0; border-top: 1px solid var(--border-subtle); text-align: center; }
   footer p {
-    font-size: 12px;
-    color: var(--muted);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px; color: var(--text-4);
   }
 
-  /* Scroll indicator */
+  /* Scroll hint */
   .scroll-hint {
-    position: absolute;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    animation: pulse 2s ease-in-out infinite;
+    position: absolute; bottom: 28px; left: 0;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px; color: var(--text-4); letter-spacing: 1px;
+    animation: pulse 2.4s ease-in-out infinite;
   }
+  @keyframes pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.8; }
-  }
-
-  /* Respect users who prefer reduced motion */
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .scroll-hint { animation: none; }
     * { transition: none !important; }
   }
 
-  /* Responsive */
   @media (max-width: 480px) {
-    .container { padding: 0 16px; }
-    section { padding: 60px 0; }
-    .hero { padding: 60px 0; }
-    .hero-links { gap: 16px; }
+    .container { padding: 0 18px; }
+    .nav-inner { padding: 12px 18px; gap: 18px; }
+    section { padding: 56px 0; }
+    .hero { padding: 72px 0 64px; min-height: auto; }
     .stack-grid { grid-template-columns: 1fr; }
+    .hero-links { gap: 8px; }
   }
 </style>
 </head>
@@ -362,15 +296,16 @@
 
 <nav class="site-nav" aria-label="Primary">
   <div class="nav-inner">
+    <span class="nav-brand"><span class="dot"></span>shivam som bajpai</span>
     <a href="#projects">Projects</a>
     <a href="#about">About</a>
-    <a href="mailto:ssbajpai9@gmail.com">Email</a>
+    <a class="nav-cta" href="mailto:ssbajpai9@gmail.com">Email</a>
   </div>
 </nav>
 
 <div class="container" id="main">
   <header class="hero">
-    <p class="hero-label">shivam som bajpai</p>
+    <p class="hero-label">portfolio</p>
     <h1>I build things that <span class="accent">work</span>.</h1>
     <p class="hero-bio">
       Full-stack builder across fintech, agritech, and AI tooling.
@@ -380,35 +315,15 @@
       AI-assisted execution.
     </p>
     <div class="hero-links">
-      <a href="https://github.com/shivamsbajpai" target="_blank" rel="noopener">github</a>
-      <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
-      <a href="mailto:ssbajpai9@gmail.com">email</a>
+      <a class="btn btn-primary" href="#projects">View projects</a>
+      <a class="btn btn-ghost" href="https://github.com/shivamsbajpai" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
     </div>
     <a class="scroll-hint" href="#projects" aria-label="Scroll to projects">scroll &darr;</a>
   </header>
 
   <section id="projects">
     <h2 class="section-label">Projects</h2>
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">loan-app</span>
-        <div class="project-tags">
-          <span class="tag go">Go</span>
-          <span class="tag kotlin">Kotlin</span>
-          <span class="tag private">private</span>
-        </div>
-      </div>
-      <p class="project-desc">
-        Full-stack fintech loan origination platform for small business owners
-        in India who lack formal credit history. A server-driven Journey Orchestrator
-        dynamically walks borrowers through only the steps that apply to them, with
-        voice-augmented UX in Hindi/English. Underwrites through alternative signals:
-        live inventory video, Account Aggregator bank-flow, credit bureau data, and
-        SMS-based capacity proxies. Multi-lender white-label tenancy. Go backend
-        (21 internal packages), Kotlin/Compose Android app, Docker + Caddy deployment.
-      </p>
-    </div>
 
     <div class="project">
       <div class="project-header">
@@ -504,6 +419,26 @@
 
     <div class="project">
       <div class="project-header">
+        <span class="project-name">loan-app</span>
+        <div class="project-tags">
+          <span class="tag go">Go</span>
+          <span class="tag kotlin">Kotlin</span>
+          <span class="tag private">private</span>
+        </div>
+      </div>
+      <p class="project-desc">
+        Full-stack fintech loan origination platform for small business owners
+        in India who lack formal credit history. A server-driven Journey Orchestrator
+        dynamically walks borrowers through only the steps that apply to them, with
+        voice-augmented UX in Hindi/English. Underwrites through alternative signals:
+        live inventory video, Account Aggregator bank-flow, credit bureau data, and
+        SMS-based capacity proxies. Multi-lender white-label tenancy. Go backend
+        (21 internal packages), Kotlin/Compose Android app, Docker + Caddy deployment.
+      </p>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
         <span class="project-name">yt-skin</span>
         <div class="project-tags">
           <span class="tag js">JavaScript</span>
@@ -581,7 +516,7 @@
     </div>
 
     <div class="tvash-block">
-      <h3>Meet Tvash</h3>
+      <h3><span class="dot"></span>Meet Tvash</h3>
       <p>
         Tvash is my AI collaborator &mdash; a Claude-powered agent that helps me build.
         Not a gimmick. An actual part of my workflow. The lomasa-ai projects are all
