@@ -79,3 +79,18 @@ export function cameraFloat(state) {
 export function modeOf(state) {
   return state.phase === PHASE.TRAVELLING ? MODE.TRAVEL : MODE.INFO;
 }
+
+/**
+ * Slice 4 — fly-in progress gating (pure).
+ * Time eases the cinematic sweep, but the final approach (the last 15% of the
+ * path) is gated on real asset progress, so the camera settles onto Overwatch
+ * exactly when loading completes: fast connections get a purely time-shaped
+ * flight; slow ones hang on the approach instead of landing early.
+ * @param {number} timeFrac  elapsed / planned duration (unclamped ok)
+ * @param {number} assetFrac loaded assets / total (unclamped ok)
+ * @returns {number} path progress in [0, 1]; 1 only when both inputs are >= 1
+ */
+export function flyProgress(timeFrac, assetFrac) {
+  const t = clamp(timeFrac, 0, 1), a = clamp(assetFrac, 0, 1);
+  return Math.min(easeInOut(t), 0.85 + 0.15 * a);
+}
