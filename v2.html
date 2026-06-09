@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shivam Som Bajpai — Software Engineer</title>
+<meta name="description" content="Software engineer and full-stack builder — multi-cloud infrastructure, identity & security at scale, plus AI-agent tooling, mobile apps and developer tools.">
+<meta name="theme-color" content="#120805">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23120805'/%3E%3Cg fill='none' stroke='%23ffb24a' stroke-width='1.4'%3E%3Ccircle cx='16' cy='16' r='9'/%3E%3Cpath d='M16 3v7M16 22v7M3 16h7M22 16h7'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.6' fill='%23ff5b41'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --amber: #ffb24a; --amber-hot: #ffc977; --lock: #ff5b41; --phosphor: #7cfca6;
+    --text: #f6ece0; --text-2: #dcc6b0; --text-3: #a98b73; --text-4: #7a5d49;
+    --border: rgba(255,178,74,.16); --border-subtle: rgba(255,178,74,.09);
+    --grad: linear-gradient(105deg, #ffb24a, #e0651d 55%, #c1440e);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif; background: #0c0604; color: var(--text-2);
+    -webkit-font-smoothing: antialiased; overflow: hidden; overscroll-behavior: none;
+    position: fixed; inset: 0;   /* app drives its own scroll via wheel/touch/keys */
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .display { font-family: 'Space Grotesk', sans-serif; }
+
+  /* WebGL desert canvas — fixed behind everything */
+  #bg {
+    position: fixed; inset: 0; z-index: -2; display: block;
+    transition: filter .55s ease, opacity .8s ease; opacity: 0;
+  }
+  #bg.ready { opacity: 1; }
+  /* depth-of-field + dim when docked in info mode */
+  body.info #bg { filter: blur(4px) brightness(.66) saturate(.95); }
+
+  /* fallback sky if WebGL fails */
+  .sky-fallback { position: fixed; inset: 0; z-index: -3;
+    background: linear-gradient(180deg,#16100c,#3a1a0a 70%,#7a3a18); }
+
+  /* scroll driver: an empty spacer that gives the page its scroll height */
+  #spacer { width: 1px; }
+
+  /* ===== Sniper scope overlay (TRAVEL mode) ===== */
+  .scope { position: fixed; inset: 0; z-index: 20; pointer-events: none;
+    transition: opacity .5s ease; }
+  body.info .scope { opacity: 0; }
+  .vignette { position: fixed; inset: 0;
+    background: radial-gradient(circle at var(--sx,50%) var(--sy,50%),
+      transparent 0%, transparent 30%, rgba(8,4,2,.18) 52%, rgba(6,3,1,.6) 78%, rgba(4,2,1,.94) 100%); }
+  .cross-h, .cross-v { position: fixed; background: rgba(255,178,74,.28); }
+  .cross-h { left:0; right:0; height:1px; } .cross-v { top:0; bottom:0; width:1px; }
+  .reticle { position: fixed; width: 230px; height: 230px; transform: translate(-50%,-50%);
+    border-radius: 50%; border: 1px solid rgba(255,178,74,.4); }
+  .reticle::before { content:''; position:absolute; inset:-14px; border-radius:50%;
+    border:1px dashed rgba(255,178,74,.16); }
+  .reticle .dot { position:absolute; left:50%; top:50%; width:5px; height:5px; border-radius:50%;
+    background: var(--lock); transform: translate(-50%,-50%); box-shadow:0 0 8px rgba(255,91,65,.9); }
+
+  /* ===== Tactical HUD (always on) ===== */
+  .hud { position: fixed; inset: 0; z-index: 25; pointer-events: none;
+    font-family:'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing:.4px;
+    color: rgba(255,201,119,.78); text-shadow: 0 0 6px rgba(0,0,0,.6); }
+  .hud .corner { position:absolute; width:24px; height:24px; border:1px solid rgba(255,178,74,.4); }
+  .hud .tl{top:14px;left:14px;border-right:none;border-bottom:none}
+  .hud .tr{top:14px;right:14px;border-left:none;border-bottom:none}
+  .hud .bl{bottom:14px;left:14px;border-right:none;border-top:none}
+  .hud .br{bottom:14px;right:14px;border-left:none;border-top:none}
+  .hud .k{color:var(--text-4)} .hud .v{color:var(--amber)} .hud .g{color:var(--phosphor)}
+  .hud-bl{position:absolute;bottom:22px;left:26px;line-height:1.7}
+  .hud-br{position:absolute;bottom:22px;right:26px;text-align:right;line-height:1.7}
+  @media (max-width:520px){ .hud-br{display:none} }
+
+  /* brand / fast-travel placeholder bar */
+  .topbar { position: fixed; top:0; left:0; right:0; z-index: 30; display:flex; align-items:center;
+    gap:14px; padding:14px 26px; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
+    pointer-events:none; }
+  .topbar .brand{ display:flex; align-items:center; gap:9px; }
+  .topbar .brand .dot{ width:9px;height:9px;border-radius:50%;background:var(--lock);
+    box-shadow:0 0 12px rgba(255,91,65,.9); }
+  .topbar .tag{ color:var(--text-4); }
+
+  /* ===== INFO mode content panel ===== */
+  #infoLayer { position: fixed; inset:0; z-index: 15; display:flex; align-items:center; justify-content:center;
+    padding: 92px 24px 64px; pointer-events:none; opacity:0; transition:opacity .45s ease; }
+  body.info #infoLayer { opacity:1; }
+  .panel {
+    width: min(760px, 100%); max-height: min(62vh, 540px); display:none; flex-direction:column;
+    background: rgba(16,8,4,.62); border:1px solid var(--border); border-radius:16px;
+    box-shadow: 0 40px 110px -34px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,178,74,.05);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); overflow:hidden;
+    transform: scale(.985); transition: transform .45s ease; pointer-events:auto;
+  }
+  .panel.active { display:flex; }            /* always laid out so it is measurable on arrival */
+  body.info .panel.active { transform: none; }
+  .panel-head { display:flex; align-items:center; gap:12px; padding:14px 22px;
+    border-bottom:1px solid var(--border-subtle); font-family:'JetBrains Mono',monospace;
+    font-size:11.5px; letter-spacing:.6px; color:var(--text-3); flex:0 0 auto; }
+  .panel-head .cp{ color:var(--amber); font-weight:600; }
+  .panel-head .lock{ margin-left:auto; color:var(--lock); display:inline-flex; align-items:center; gap:6px; }
+  .panel-head .lock::before{ content:''; width:6px;height:6px;border-radius:50%;background:var(--lock);
+    box-shadow:0 0 8px rgba(255,91,65,.9); }
+  .panel-body { padding: 26px 28px 30px; overflow:hidden; }
+  .panel-body h1{ font-family:'Space Grotesk',sans-serif; color:var(--text); font-weight:700;
+    font-size: clamp(28px,4vw,46px); letter-spacing:-1.5px; line-height:1.04; margin-bottom:14px; }
+  .panel-body h2{ font-family:'Space Grotesk',sans-serif; color:var(--text); font-weight:600;
+    font-size: clamp(22px,3vw,32px); letter-spacing:-.8px; margin-bottom:12px; }
+  .panel-body p{ font-size:15.5px; line-height:1.65; color:var(--text-2); margin-bottom:14px; max-width:62ch; }
+  .panel-body .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--amber);
+    letter-spacing:.4px; margin-bottom:14px; }
+  .scroll-hint{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-4);
+    margin-top:6px; }
+
+  /* boot/init flash (Slice 4 will replace with cinematic fly-in) */
+  #init { position:fixed; inset:0; z-index:60; background:#0c0604; display:flex; align-items:center;
+    justify-content:center; font-family:'JetBrains Mono',monospace; color:var(--amber); font-size:13px;
+    transition:opacity .6s ease; }
+  #init.done{ opacity:0; pointer-events:none; }
+
+  @media (prefers-reduced-motion: reduce){ #bg, #infoLayer, .scope, #init { transition:none !important; } }
+</style>
+</head>
+<body>
+  <div class="sky-fallback" aria-hidden="true"></div>
+  <canvas id="bg" aria-hidden="true"></canvas>
+
+  <!-- scope overlay (travel mode) -->
+  <div class="scope" id="scope" aria-hidden="true">
+    <div class="vignette" id="vignette"></div>
+    <div class="cross-h" id="crossH"></div>
+    <div class="cross-v" id="crossV"></div>
+    <div class="reticle" id="reticle"><span class="dot"></span></div>
+  </div>
+
+  <!-- tactical HUD -->
+  <div class="hud" aria-hidden="true">
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+    <div class="hud-bl">
+      <div><span class="k">SECTOR</span> <span class="v">ARES-09</span> · <span class="k">GRID</span> <span class="v" id="hudGrid">0000</span></div>
+      <div><span class="k">MODE</span> <span class="g" id="hudMode">TRAVERSING</span></div>
+    </div>
+    <div class="hud-br">
+      <div><span class="k">RNG</span> <span class="v" id="hudRange">0000m</span></div>
+      <div><span class="k">HDG</span> <span class="v" id="hudHdg">000°</span> · <span class="k">OPTIC</span> <span class="v">12×</span></div>
+    </div>
+  </div>
+
+  <div class="topbar" aria-hidden="true">
+    <span class="brand mono"><span class="dot"></span>RECON&nbsp;<span class="tag">// shivam som bajpai</span></span>
+  </div>
+
+  <!-- INFO-mode content panels (populated by main.js; content lives in DOM) -->
+  <div id="infoLayer"></div>
+
+  <div id="spacer"></div>
+
+  <div id="init" class="mono">initializing recon optics…</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="./scene/main.js"></script>
+</body>
+</html>
