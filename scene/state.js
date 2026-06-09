@@ -7,66 +7,132 @@
 // Two phases, BOTH driven by scroll input (nothing moves on its own):
 //   READING    — docked at a checkpoint; scroll moves the content panel
 //                (readScroll px). INFO mode.
-//   TRAVELLING — scroll scrubs the camera along the path to the adjacent
-//                checkpoint (travelT 0..1 over `travelLen` px of scroll). Stop
-//                scrolling and the camera holds mid-desert. TRAVEL mode.
+//   TRAVELLING — each *stroke* (one swipe / wheel burst / keypress, grouped
+//                by the caller) advances the camera 1/TRAVEL_STEPS of the
+//                gap. Stop stroking and the camera holds mid-desert. TRAVEL
+//                mode.
 //
-// Reaching the end of the content pins there; the next scroll past it begins a
-// travel. Scrolling forward scrubs toward the next checkpoint; scrolling back
-// reverses — past 1 you arrive, back past 0 you cancel to where you came from.
+// Input arrives on two channels (the caller groups raw events into strokes):
+//   applyScroll()   — live px deltas; ONLY move the content while reading.
+//   commitStroke()  — once per stroke; drives friction and travel.
 //
-// Arrival lands at the content edge you are moving INTO (forward -> top, read
-// down; backward -> end, read up), so a checkpoint is always read in full
-// before its pin releases regardless of travel direction.
+// Boundary friction keeps content in focus (people were skimming straight
+// across the map when one px past the end released the pin):
+//   settle — set to SETTLE_TAPS on scroll-travel arrival; while > 0 every
+//            stroke is absorbed whole (leftover swipe-spam from travelling
+//            must not scroll the freshly docked panel). Settle strokes also
+//            count toward `arm`, so backing straight out after arrival
+//            costs SETTLE_TAPS absorbed strokes, not SETTLE_TAPS + EDGE_TAPS.
+//   arm    — strokes absorbed at a pinned content edge before the next push
+//            releases into travel; any stroke that moves content re-arms.
+//            Reading inside the content is always frictionless.
+//
+// Travel takes exactly TRAVEL_STEPS strokes per gap (the releasing push is
+// step 1). A reverse stroke steps back; past 0 cancels to where you came
+// from. Arrival lands at the content edge you are moving INTO (forward ->
+// top, read down; backward -> end, read up), so a checkpoint is always read
+// in full before its pin releases regardless of travel direction.
 
 export const PHASE = { READING: 'READING', TRAVELLING: 'TRAVELLING' };
 export const MODE = { TRAVEL: 'TRAVEL', INFO: 'INFO' };
 
+export const TRAVEL_STEPS = 3;  // strokes to cross one checkpoint gap
+export const EDGE_TAPS = 1;     // absorbed strokes before a pinned edge releases (owner feel-tested 2 -> 1)
+export const SETTLE_TAPS = 1;   // strokes absorbed whole after a scroll-travel arrival (owner feel-tested 2 -> 1)
+export const PIN_SLOP = 4;      // px within which an edge counts as pinned — contentMax
+                                // is a live DOM measurement and jitters a few px
+                                // (animations, font loads, mobile URL-bar resize)
+
+const EPS = 1e-9;               // 1/3 accumulates to 0.999…; never compare to 1 exactly
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
 export function initState() {
-  return { phase: PHASE.READING, cp: 0, readScroll: 0, travelT: 0, from: 0, to: 0 };
+  // Boot is not an arrival (no swipe momentum to soak up): hero is
+  // immediately scrollable, but leaving it still costs EDGE_TAPS pushes (D4).
+  return { phase: PHASE.READING, cp: 0, readScroll: 0, travelT: 0, from: 0, to: 0, settle: 0, arm: EDGE_TAPS };
 }
 
 /**
- * Apply a scroll/wheel/touch delta.
- * @param {object} state
+ * Live scroll/wheel/touch delta — content reading only. Travel no longer
+ * scrubs by px (strokes drive it, see commitStroke), and a settling panel
+ * stays frozen under the spam that delivered the reader here.
  * @param {number} delta      px (positive = down/forward)
  * @param {number} contentMax max scroll of the current content (px)
- * @param {number} count      number of checkpoints
- * @param {number} travelLen  px of scroll to traverse one checkpoint gap
  */
-export function applyScroll(state, delta, contentMax, count, travelLen) {
-  if (state.auto) return state;   // a deliberate fast-travel completes; scroll is ignored mid-flight (DT1)
-  if (state.phase === PHASE.READING) {
-    const ns = clamp(state.readScroll + delta, 0, Math.max(0, contentMax));
-    if (ns !== state.readScroll) return { ...state, readScroll: ns };
-    // pinned at a bound -> begin a travel past it
-    if (delta > 0 && state.cp < count - 1) return { ...state, phase: PHASE.TRAVELLING, from: state.cp, to: state.cp + 1, travelT: 0 };
-    if (delta < 0 && state.cp > 0) return { ...state, phase: PHASE.TRAVELLING, from: state.cp, to: state.cp - 1, travelT: 0 };
-    return state;
-  }
-  // TRAVELLING — scrub camera along the path (scroll-driven, not timed)
+export function applyScroll(state, delta, contentMax) {
+  if (state.auto || state.phase !== PHASE.READING || state.settle > 0) return state;
+  const ns = clamp(state.readScroll + delta, 0, Math.max(0, contentMax));
+  return ns === state.readScroll ? state : { ...state, readScroll: ns };
+}
+
+/**
+ * Commit one stroke (the caller groups raw events: one touch swipe, one
+ * wheel burst, one keypress).
+ * @param {number}  dir        stroke direction: +1 down/forward, -1 up/back
+ * @param {boolean} moved      did this stroke's live deltas move the content?
+ * @param {number}  contentMax max scroll of the current content (px)
+ * @param {number}  count      number of checkpoints
+ */
+/* Advance an in-flight travel by a signed path fraction; shared by the
+   stroke quantum (commitStroke) and the wheel scrub (scrubTravel). */
+function advanceTravel(state, tDelta) {
   const forward = state.to > state.from;
-  const t = state.travelT + (forward ? delta : -delta) / Math.max(1, travelLen);
-  if (t >= 1) {
-    // Arrive. Land at the edge the reader is moving INTO so the panel is read
-    // in full before the pin releases: forward -> top (read down); backward ->
-    // end (read up). The backward sentinel is clamped to the destination's
-    // contentMax by the caller (same pattern as the forward-cancel below).
-    // Without this, backward arrival at readScroll:0 IS the reverse-travel
-    // bound, so one more up-scroll immediately leaves and the checkpoint is
-    // flown through with no reading dwell (content never shows).
+  const t = state.travelT + tDelta;
+  if (t >= 1 - EPS) {
+    // Arrive. Land at the edge the reader is moving INTO so the panel is
+    // read in full before the pin releases: forward -> top (read down);
+    // backward -> end (read up). The backward sentinel is clamped to the
+    // destination's contentMax by the caller (same pattern as the
+    // forward-cancel below). Without this, backward arrival at
+    // readScroll:0 IS the reverse-travel bound, so one more up-scroll
+    // immediately leaves and the checkpoint is flown through with no
+    // reading dwell (content never shows).
     const land = forward ? 0 : Number.MAX_SAFE_INTEGER;
-    return { phase: PHASE.READING, cp: state.to, readScroll: land, travelT: 0, from: state.to, to: state.to };
+    return { phase: PHASE.READING, cp: state.to, readScroll: land, travelT: 0, from: state.to, to: state.to, settle: SETTLE_TAPS, arm: EDGE_TAPS };
   }
-  if (t <= 0) {
-    // cancelled back to origin: forward-cancel returns to the end of that content
+  if (t <= EPS) {
+    // Cancelled back to origin: forward-cancel returns to the end of that
+    // content. No settle (the reader chose to come back, not spam-arrived);
+    // re-leaving re-arms like any other edge push.
     const back = forward ? Number.MAX_SAFE_INTEGER : 0;
-    return { phase: PHASE.READING, cp: state.from, readScroll: back, travelT: 0, from: state.from, to: state.from };
+    return { phase: PHASE.READING, cp: state.from, readScroll: back, travelT: 0, from: state.from, to: state.from, settle: 0, arm: EDGE_TAPS };
   }
   return { ...state, travelT: t };
+}
+
+/**
+ * Continuous travel scrub for px-true input devices (wheel/trackpad): every
+ * pixel moves the camera, so desktop travel glides with the scroll instead
+ * of stepping once per burst. Touch swipes and keypresses keep the stroke
+ * quantum (commitStroke) — the phone's "3 swipes per gap" promise. Arrival /
+ * cancel semantics (settle, arm, landing edge) are identical to strokes.
+ * @param {number} delta     px (positive = down/forward)
+ * @param {number} travelLen px of scroll to traverse one checkpoint gap
+ */
+export function scrubTravel(state, delta, travelLen) {
+  if (state.auto || state.phase !== PHASE.TRAVELLING || !delta) return state;
+  const forward = state.to > state.from;
+  return advanceTravel(state, (forward ? delta : -delta) / Math.max(1, travelLen));
+}
+
+export function commitStroke(state, dir, moved, contentMax, count) {
+  if (state.auto || !dir) return state;   // fast-travel completes; scroll is ignored mid-flight (DT1)
+  if (state.phase === PHASE.TRAVELLING) {
+    const forward = state.to > state.from;
+    return advanceTravel(state, (forward ? dir : -dir) / TRAVEL_STEPS);
+  }
+  // READING
+  if (state.settle > 0) return { ...state, settle: state.settle - 1, arm: Math.max(0, state.arm - 1) };
+  if (moved) return state.arm === EDGE_TAPS ? state : { ...state, arm: EDGE_TAPS };
+  // Unmoved stroke pushing past a pinned edge: absorb EDGE_TAPS of them,
+  // then release — the releasing push is travel stroke 1 of TRAVEL_STEPS.
+  const max = Math.max(0, contentMax);
+  const pushOut = (dir > 0 && state.readScroll >= max - PIN_SLOP && state.cp < count - 1)
+    || (dir < 0 && state.readScroll <= PIN_SLOP && state.cp > 0);
+  if (!pushOut) return state;
+  if (state.arm > 0) return { ...state, arm: state.arm - 1 };
+  return { ...state, phase: PHASE.TRAVELLING, from: state.cp, to: state.cp + dir, travelT: 1 / TRAVEL_STEPS, arm: EDGE_TAPS };
 }
 
 /** Continuous camera position along the checkpoint rail. Travel is LINEAR in
@@ -116,7 +182,7 @@ export function startFastTravel(state, target, count) {
   const to = clamp(Math.round(target), 0, count - 1);
   const from = cameraFloat(state);
   if (state.phase === PHASE.READING && state.cp === to) return state;   // already docked there
-  return { phase: PHASE.TRAVELLING, cp: state.cp, readScroll: 0, from, to, travelT: 0, auto: true };
+  return { phase: PHASE.TRAVELLING, cp: state.cp, readScroll: 0, from, to, travelT: 0, auto: true, settle: 0, arm: EDGE_TAPS };
 }
 
 /**
@@ -128,6 +194,8 @@ export function tickAutoTravel(state, dt) {
   if (!state.auto || state.phase !== PHASE.TRAVELLING) return state;
   const durMs = 500 + 450 * Math.abs(state.to - state.from);
   const t = state.travelT + dt / Math.max(1, durMs);
-  if (t >= 1) return { phase: PHASE.READING, cp: state.to, readScroll: 0, travelT: 0, from: state.to, to: state.to };
+  // A deliberate jump lands immediately readable: no settle (that gate soaks
+  // up leftover travel-swipe momentum, which a palette click doesn't have).
+  if (t >= 1) return { phase: PHASE.READING, cp: state.to, readScroll: 0, travelT: 0, from: state.to, to: state.to, settle: 0, arm: EDGE_TAPS };
   return { ...state, travelT: t };
 }

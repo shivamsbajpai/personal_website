@@ -2,7 +2,7 @@
 // Run: node --test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { initState, applyScroll, startFastTravel, tickAutoTravel, cameraFloat, modeOf, PHASE, MODE } from '../scene/state.js';
+import { initState, applyScroll, commitStroke, startFastTravel, tickAutoTravel, cameraFloat, modeOf, PHASE, MODE } from '../scene/state.js';
 
 const COUNT = 5;
 const tick = (s, ms) => tickAutoTravel(s, ms);
@@ -55,14 +55,13 @@ test('duration scales with distance: same dt moves a short hop further along', (
 
 test('scroll input is ignored while an auto leg is in flight', () => {
   const s = tick(startFastTravel(initState(), 3, COUNT), 200);
-  const after = applyScroll(s, 500, 600, COUNT, 2400);
-  assert.equal(after, s);
+  assert.equal(applyScroll(s, 500, 600), s);
+  assert.equal(commitStroke(s, 1, false, 600, COUNT), s);
 });
 
 test('a fast-travel started mid-scroll-travel departs from the current float', () => {
-  let s = initState();
-  s = applyScroll(s, 1, 0, COUNT, 2400);          // begin travel 0 -> 1
-  s = applyScroll(s, 1200, 0, COUNT, 2400);       // halfway
+  // mid-gap state as the stroke cadence produces it (one stroke past the gate)
+  const s = { phase: PHASE.TRAVELLING, cp: 0, readScroll: 0, travelT: 1 / 3, from: 0, to: 1, settle: 0, arm: 2 };
   const float = cameraFloat(s);
   const ft = startFastTravel(s, 4, COUNT);
   assert.equal(ft.from, float);
@@ -72,6 +71,6 @@ test('a fast-travel started mid-scroll-travel departs from the current float', (
 test('tickAutoTravel is a no-op for non-auto states', () => {
   const s = initState();
   assert.equal(tickAutoTravel(s, 500), s);
-  const scrub = applyScroll(s, 1, 0, COUNT, 2400);
+  const scrub = { ...s, phase: PHASE.TRAVELLING, travelT: 1 / 3, from: 0, to: 1 };
   assert.equal(tickAutoTravel(scrub, 500), scrub);
 });
