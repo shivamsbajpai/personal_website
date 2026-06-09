@@ -9,13 +9,38 @@ Blocked-by: #3 (DONE); #4/#5/#6 also shipped ([PR-12], [PR-14], [PR-16])
 
 | # | Step | State | Commit | Notes |
 |---|------|-------|--------|-------|
-| 1 | Pure auto-travel + unit tests (DT1) | pending | — | `startFastTravel` / `tickAutoTravel` |
-| 2 | Fire-control palette UI (DT2) | pending | — | `#fc` overlay in `v2.html` |
-| 3 | Nav strip (DT3) | pending | — | topbar indices + ⌘K button |
-| 4 | Keyboard + a11y wiring (DT4) | pending | — | intro acts as skip first |
-| 5 | Utility actions (DT5) | pending | — | résumé/GitHub/lomasa-ai/copy email + toast |
-| 6 | Local verification | pending | — | fwd+bwd jumps, keyboard, clipboard, intro interplay, mobile, RM |
-| 7 | PR + owner gate | pending | — | merge authorized for this session |
+| 1 | Pure auto-travel + unit tests (DT1) | DONE ✅ | 6dff145 | 9 tests; suite now 43 |
+| 2 | Fire-control palette UI (DT2) | DONE ✅ | 942d7a8 | `#fc` overlay; key-field-ranked filter (see defect) |
+| 3 | Nav strip (DT3) | DONE ✅ | 942d7a8 | indices + ⌘K; `.cur` highlight; indices hidden <560px |
+| 4 | Keyboard + a11y wiring (DT4) | DONE ✅ | 942d7a8 | ⌘K/Ctrl+K, Esc, wrap arrows, Enter, focus in/restore; intro skips first |
+| 5 | Utility actions (DT5) | DONE ✅ | 942d7a8 | clipboard verified by read-back; HUD toast |
+| 6 | Local verification | DONE ✅ | — | see evidence block; screenshots in [`evidence/`](evidence/) |
+| 7 | PR + owner gate | in_progress | — | merge authorized for this session |
+
+## Plan defects observed
+
+**Naive substring filter selected the wrong checkpoint.** Typing "work"
+matched Overwatch first — its panel title is "I build things that **work**…"
+— so Enter no-op'd at checkpoint 0 instead of jumping to `02 · WORK` (caught
+by the reduced-motion verification pass, which jumps by typed name). Fix:
+rank key-field matches (`02 · WORK`) above title-text matches in `fcRender`
+(stable sort by a 0/1 score). Lesson: palette filters over prose need field
+ranking, not flat substring search.
+
+**Step-6 evidence (this session):** `node --test` → **43 pass / 0 fail**;
+debug-hook grep clean; `index.html` untouched. Browser (CDP cache off —
+`state.js` changed): **⌘K** opens with focus in input, 9 items; filter
+"about" → Enter flies (TRAVERSING) and **docks at 03 · ABOUT** (panel 1, nav
+highlight `3`). **Backward nav-button jump** 3→1 docks at 01 · EXPERIENCE,
+lands at top (`translateY(0)`). **Ctrl+K** + ArrowUp wrap + Enter on "Copy
+email" → clipboard read-back `ssbajpai9@gmail.com` exact + toast shown.
+**Esc** closes, focus restored. **Résumé** action opens
+`/latest_resume.pdf` in a new tab. **Arrow-key reading** works after close;
+**wheel travel** regression ✓. **Intro interplay:** ⌘K mid-INBOUND skips the
+fly-in and opens the palette; palette jump to COMMS works post-skip.
+**Mobile 390×844:** indices hidden, ⌘K button visible, palette 358px wide
+and usable. **Reduced motion:** palette jump "work" → docks at 02 · WORK
+(post-fix). **0 console errors/warnings across the session.**
 
 ## Acceptance criteria → step
 
@@ -39,10 +64,6 @@ Blocked-by: #3 (DONE); #4/#5/#6 also shipped ([PR-12], [PR-14], [PR-16])
    bust the page URL (`v2.html?b=N`); live rAF traces for transitional UI;
    `sessionStorage` persists across Playwright reloads (clear it to re-test
    first-load); fast-travel during the intro must skip first.
-
-## Plan defects observed
-
-*(log as they happen, not at session wrap)*
 
 ## Carry-forward invariants (Slices 1–4 — do NOT regress)
 
