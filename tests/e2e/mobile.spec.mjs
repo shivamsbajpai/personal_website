@@ -78,6 +78,18 @@ test('touch: edge gate, stroke-counted gap, arrival settle', async ({ page }) =>
   await expect(page.locator('#bg')).toHaveClass(/ready/, { timeout: 15000 });
   const hud = page.locator('#hudMode');
   const transform = () => page.evaluate(() => document.querySelector('.panel.active .panel-scroll').style.transform || 'none');
+  // reading scroll GLIDES toward its target now — wait for the ease-out to
+  // settle before treating the transform as a stable baseline
+  const settled = async () => {
+    let prev = await transform();
+    for (let i = 0; i < 40; i++) {
+      await page.waitForTimeout(80);
+      const cur = await transform();
+      if (cur === prev) return cur;
+      prev = cur;
+    }
+    throw new Error('panel transform never settled');
+  };
   const { TRAVEL_STEPS, EDGE_TAPS, SETTLE_TAPS } = await cadence(page);
 
   // pin to the bottom deterministically: ONE oversized swipe clamps readScroll
@@ -91,8 +103,7 @@ test('touch: edge gate, stroke-counted gap, arrival settle', async ({ page }) =>
     for (let i = 1; i <= 10; i++) window.dispatchEvent(mk('touchmove', 800 - i * 500));
     window.dispatchEvent(mk('touchend', -4200));
   });
-  await page.waitForTimeout(90);
-  const atPin = await transform();
+  const atPin = await settled();
   expect(atPin).not.toBe('none');                                // hero content really scrolled
 
   for (let i = 1; i <= EDGE_TAPS; i++) {                         // absorbed taps
