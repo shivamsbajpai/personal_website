@@ -67,6 +67,22 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
   scroll handler before measuring/clamping. The DoF CSS approximation (D3) remains
   a scoped decision, not a defect.
 
+- **Reduced-motion eliminated the travel loop (teleported between checkpoints).**
+  Owner repro (macOS Reduce Motion on): "travel mode is totally gone." Cause:
+  the `prefers-reduced-motion` branch set `TRAVEL_LEN = 1` *and* every camera
+  lerp to `1`, so a single 100px scroll notch advanced `travelT` by `100/1 =
+  100 ≫ 1` → instant arrival at the next checkpoint; the camera never scrubbed
+  the desert. Reduced-motion was honoring the preference by deleting the slice's
+  core loop. Fix (`scene/main.js`): keep the same scrubbed `TRAVEL_LEN = 2400`
+  traversal under reduced-motion and honor the preference by damping *inertial*
+  motion instead — tighter camera tracking (`0.3–0.35` vs `1.0`, still
+  interpolated so no per-notch hard-snap) and no mouse-look parallax sway.
+  Removed the now-unused `LERP` constant. Verified in-browser under emulated
+  reduced-motion: travel mode appears, range ramps over 48 distinct values /60
+  notches, reverse-shows-middle intact, 0 errors; normal mode unchanged. D9
+  (sunny lighting) and the scroll-driven model are untouched — this was a
+  reduced-motion tuning defect, not a model change.
+
 ## Locked decisions reference
 
 D1 single scroll driver + pure state machine · D2 cameraFloat interpolation ·
