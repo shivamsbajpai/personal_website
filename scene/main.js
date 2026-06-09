@@ -73,14 +73,45 @@ function camGround(x, z) { return flattenToPads(duneH(x, z), x, z); }
 /* ---------------- WebGL scene ---------------------------------------------- */
 const canvas = document.getElementById('bg');
 let renderer = null;
-try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-} catch (e) { console.warn('WebGL unavailable; CSS sky fallback in use', e); }
+// Probe a scratch canvas first: constructing WebGLRenderer on a machine
+// without WebGL makes THREE log a console error before throwing — probing
+// keeps the static-fallback path completely silent (0 console errors).
+const scratchGL = document.createElement('canvas');
+if (scratchGL.getContext('webgl2') || scratchGL.getContext('webgl')) {
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  } catch (e) { console.warn('WebGL unavailable; static fallback in use', e); }
+}
 
-if (!renderer) {
-  document.body.classList.add('info');
-  panels[0].classList.add('active');
+/* --- Slice 6: static fallback (DG1–DG3) ------------------------------------
+   No WebGL, or prefers-reduced-motion: render the Slice-3 DOM as a normal
+   scrolling document. Decided BEFORE initScene so none of the 3D machinery
+   (scene graph, rAF loop, wheel/key hijack, intro) ever runs. Under reduced
+   motion with WebGL available, an explicit ENTER 3D button boots the
+   dampened 3D experience on demand (DG3). */
+function enterStaticMode(canEnter3D) {
+  document.body.classList.add('static-mode');
   document.getElementById('init').classList.add('done');
+  panels.forEach((p) => p.classList.add('active'));
+  document.querySelectorAll('.topbar .cp-jump').forEach((b) =>
+    b.addEventListener('click', () => {
+      if (!document.body.classList.contains('static-mode')) return;   // after ENTER 3D, fast-travel owns these
+      panels[+b.dataset.cp]?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }));
+  if (!canEnter3D) return;
+  const btn = document.getElementById('enter3d');
+  btn.hidden = false;
+  btn.addEventListener('click', () => {
+    btn.hidden = true;
+    document.body.classList.remove('static-mode');
+    panels.forEach((p, i) => p.classList.toggle('active', i === 0));
+    scrollTo(0, 0);
+    initScene(renderer);   // RM still damps inertial motion and never flies the intro
+  }, { once: true });
+}
+
+if (!renderer || reduce) {
+  enterStaticMode(!!renderer);
 } else {
   initScene(renderer);
 }

@@ -1,0 +1,12 @@
+{
+  "name": "personal-website",
+  "private": true,
+  "description": "Dev tooling only — the site itself is a no-build static bundle (see pm-docs). Unit tests run on bare node (node --test); @playwright/test drives the Seam-3 e2e specs.",
+  "scripts": {
+    "test": "node --test",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}
