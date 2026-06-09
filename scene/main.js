@@ -385,7 +385,7 @@ function initScene(renderer) {
 
   const camPos = vantages[0].pos.clone(), camLook = vantages[0].look.clone();
   const tPos = new THREE.Vector3(), tLook = new THREE.Vector3();
-  let infoAmt = 1, activePanel = -1, booted = false;
+  let infoAmt = 1, activePanel = -1, booted = false, renderFloat = 0;
 
   function setActivePanel(i) {
     if (i !== activePanel) { panels.forEach((p, k) => p.classList.toggle('active', k === i)); activePanel = i; }
@@ -398,27 +398,26 @@ function initScene(renderer) {
     if (paused) return;
     if (app.phase === PHASE.READING) { const m = curContentMax(); if (app.readScroll > m) app.readScroll = m; }
 
-    const cf = cameraFloat(app), md = modeOf(app);
-    vantage(cf, tPos, tLook);
-    // While travelling, ride up and over the dunes instead of cutting a straight
-    // chord through them: clamp the camera (and look target) to clear the terrain
-    // it is currently passing over. At checkpoints the vantage already sits above
-    // the flat pad, so this is a no-op there.
+    const md = modeOf(app);
+    // Smooth the scroll-driven progress: discrete wheel/touch steps (~10% of a gap
+    // each) become one continuous glide. This is what removes the bumpiness while
+    // keeping travel scroll-driven (it only advances toward where you scrolled).
+    renderFloat += (cameraFloat(app) - renderFloat) * (reduce ? 1 : 0.1);
+    vantage(renderFloat, tPos, tLook);
+    // Ride up and over the dunes (smooth ripple-free ground) rather than cutting through.
     if (md === MODE.TRAVEL) {
-      const gy = camGround(tPos.x, tPos.z) + 16;   // ride above the smooth ground
-      if (tPos.y < gy) tPos.y = gy;
-      const ly = camGround(tLook.x, tLook.z) + 4;
-      if (tLook.y < ly) tLook.y = ly;
+      const gy = camGround(tPos.x, tPos.z) + 16; if (tPos.y < gy) tPos.y = gy;
+      const ly = camGround(tLook.x, tLook.z) + 4; if (tLook.y < ly) tLook.y = ly;
     }
     mx += (tmx - mx) * 0.05; my += (tmy - my) * 0.05;
     const look = md === MODE.TRAVEL ? 1 : 0;
     tLook.x += mx * 26 * look; tLook.y += -my * 16 * look; tPos.x += mx * 10 * look;
-    // x/z track promptly; vertical is low-passed so the over-dune arc is smooth (no bumps)
-    camPos.x += (tPos.x - camPos.x) * LERP;
-    camPos.z += (tPos.z - camPos.z) * LERP;
-    camPos.y += (tPos.y - camPos.y) * (reduce ? 1 : md === MODE.TRAVEL ? 0.12 : LERP);
-    camLook.lerp(tLook, LERP);
-    if (md === MODE.TRAVEL) { const f = camGround(camPos.x, camPos.z) + 8; if (camPos.y < f) camPos.y += (f - camPos.y) * 0.4; } // soft floor, no hard kink
+    // second smoothing stage (double low-pass => continuous velocity => no per-notch bump)
+    camPos.x += (tPos.x - camPos.x) * (reduce ? 1 : 0.18);
+    camPos.z += (tPos.z - camPos.z) * (reduce ? 1 : 0.18);
+    camPos.y += (tPos.y - camPos.y) * (reduce ? 1 : 0.16);
+    camLook.lerp(tLook, reduce ? 1 : 0.18);
+    if (md === MODE.TRAVEL) { const f = camGround(camPos.x, camPos.z) + 8; if (camPos.y < f) camPos.y += (f - camPos.y) * 0.4; }
     camera.position.copy(camPos); camera.lookAt(camLook);
 
     sun.position.copy(camera.position).add(sunOffset);
@@ -430,9 +429,9 @@ function initScene(renderer) {
     document.body.classList.toggle('info', infoAmt > 0.5);
     if (md === MODE.INFO) setActivePanel(app.cp);
 
-    hudGrid.textContent = pad(3000 + cf * 620, 4);
-    hudRange.textContent = pad(180 + cf * 220, 4) + 'm';
-    hudHdg.textContent = pad(60 + cf * 40, 3) + '°';
+    hudGrid.textContent = pad(3000 + renderFloat * 620, 4);
+    hudRange.textContent = pad(180 + renderFloat * 220, 4) + 'm';
+    hudHdg.textContent = pad(60 + renderFloat * 40, 3) + '°';
     hudMode.textContent = md === MODE.INFO ? 'TARGET ACQUIRED' : 'TRAVERSING';
 
     const arr = dgeo.attributes.position.array;
