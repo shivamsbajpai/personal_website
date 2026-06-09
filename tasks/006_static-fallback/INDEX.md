@@ -1,6 +1,6 @@
 # Slice 6 — no-WebGL / reduce-motion static fallback · INDEX (resume protocol)
 
-Task: static readable floor for v2.html · **Closes [#8]** · parent epic [#2]
+Task: static readable floor for v2.html · **Closes [#8]** · parent epic [#2] · **DONE — merged via [PR-20]**, retrospective in [`summary.md`](summary.md)
 Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md)
 Branch: `task/8-static-fallback` · Preview: server on :8099 → `/v2.html`
 Blocked-by: #5 (DONE — [PR-14]); #4/#6/#7 also shipped ([PR-12], [PR-16], [PR-18])
@@ -13,7 +13,7 @@ Blocked-by: #5 (DONE — [PR-14]); #4/#6/#7 also shipped ([PR-12], [PR-16], [PR-
 | 2 | RM default + ENTER 3D opt-in (DG3) | DONE ✅ | b4b322b | opt-in boots dampened 3D, docked at Overwatch |
 | 3 | Seam-3 fallback spec (DG4) | DONE ✅ | 6a760d1, bbcb875 | 3 specs pass; pinned @playwright/test 1.60 via package.json (see defect) |
 | 4 | Local verification | DONE ✅ | — | see evidence block; screenshots in [`evidence/`](evidence/) |
-| 5 | PR + owner gate | in_progress | — | merge authorized for this session |
+| 5 | PR + owner gate | DONE ✅ | 16ff75c | [PR-20] merged (owner-authorized), #8 auto-closed |
 
 ## Acceptance criteria → step
 
@@ -25,16 +25,12 @@ Blocked-by: #5 (DONE — [PR-14]); #4/#6/#7 also shipped ([PR-12], [PR-16], [PR-
 
 ## Resume sequence for next session
 
-1. `cd ~/projects/personal_website && git checkout task/8-static-fallback`
-2. Pre-flight: `node --test` (43 must pass); server on :8099 (`lsof -iTCP:8099`).
-3. Start at the first non-DONE step. Boot branch lives at `scene/main.js`
-   ~74–86 (`renderer` try/catch → currently a crude panel-0-only fallback —
-   replace it). `reduce` is module-scope. The intro must never arm in
-   static mode (it checks `reduce` already).
-4. Gotchas: editing `scene/state.js`/`main.js` → verify with CDP cache
-   disabled (`Network.enable` first); page-URL bust; `sessionStorage`
-   persists across reloads; block WebGL in tests via an init script nulling
-   `HTMLCanvasElement.prototype.getContext` for webgl types.
+**TASK COMPLETE — nothing to resume.** [PR-20] merged to `master` (`16ff75c`),
+#8 auto-closed, retrospective in [`summary.md`](summary.md). The final slice is
+**#9 (e2e hardening + cutover)** — note its cutover ships to the LIVE SITE and
+is gated on explicit owner sign-off (PRD deploy gate); session-level merge
+authorization does NOT cover it. Start at `tasks/007_<slug>/`.
+
 
 ## Plan defects observed
 
@@ -92,3 +88,4 @@ blocked via init script.
 [PR-14]: https://github.com/shivamsbajpai/personal_website/pull/14
 [PR-16]: https://github.com/shivamsbajpai/personal_website/pull/16
 [PR-18]: https://github.com/shivamsbajpai/personal_website/pull/18
+[PR-20]: https://github.com/shivamsbajpai/personal_website/pull/20
