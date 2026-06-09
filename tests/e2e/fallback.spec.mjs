@@ -50,7 +50,7 @@ test('no WebGL: complete readable static page, no blank/broken state', async ({ 
       return orig.call(this, type, ...rest);
     };
   });
-  await page.goto('/v2.html');
+  await page.goto('/index.html');
   await expectStaticFloor(page);
   // no opt-in to a 3D mode that cannot render
   await expect(page.locator('#enter3d')).toBeHidden();
@@ -62,7 +62,7 @@ test.describe('prefers-reduced-motion', () => {
 
   test('reduce-motion: static document, no fly-in, ENTER 3D offered', async ({ page }) => {
     const errors = collectErrors(page);
-    await page.goto('/v2.html');
+    await page.goto('/index.html');
     await expectStaticFloor(page);
     // no camera motion: the intro never arms and the HUD never reads INBOUND
     await expect(page.locator('#intro')).toBeHidden();
@@ -73,7 +73,7 @@ test.describe('prefers-reduced-motion', () => {
 
   test('ENTER 3D opt-in boots the dampened 3D experience', async ({ page }) => {
     const errors = collectErrors(page);
-    await page.goto('/v2.html');
+    await page.goto('/index.html');
     await expect(page.locator('#enter3d')).toBeVisible();
     await page.click('#enter3d');
     await expect(page.locator('body')).not.toHaveClass(/static-mode/, { timeout: 5000 });

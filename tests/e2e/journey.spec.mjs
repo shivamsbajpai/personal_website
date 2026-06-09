@@ -3,7 +3,7 @@
 // first-load test; the others pre-mark the session to start docked.
 import { test, expect } from '@playwright/test';
 
-const PAGE = '/v2.html';
+const PAGE = '/index.html';
 
 const collectErrors = (page) => {
   const errors = [];

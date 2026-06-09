@@ -3,7 +3,7 @@
 // matching how a phone drives the optic.
 import { test, expect } from '@playwright/test';
 
-const PAGE = '/v2.html';
+const PAGE = '/index.html';
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
