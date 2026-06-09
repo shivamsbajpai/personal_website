@@ -9,13 +9,13 @@ Blocked-by: #3, #4 (DONE — [PR-10], [PR-12]); #5 also shipped ([PR-14])
 
 | # | Step | State | Commit | Notes |
 |---|------|-------|--------|-------|
-| 1 | `flyProgress` helper + unit tests (DF2) | pending | — | |
-| 2 | Intro overlay UI (loader + skip) | pending | — | |
-| 3 | Fly-in path + loop integration (DF1) | pending | — | ends byte-exactly at `vantages[0]` |
-| 4 | Real asset progress via LoadingManager (DF3) | pending | — | eager only when intro plays |
-| 5 | Session / skip / reduced-motion paths (DF4) | pending | — | |
-| 6 | Local verification | pending | — | handoff rAF trace; session replay; skip; RM; mobile |
-| 7 | PR + owner gate | pending | — | merge authorized for this session |
+| 1 | `flyProgress` helper + unit tests (DF2) | DONE ✅ | 1e3fed4 | 6 tests; suite now 34 |
+| 2 | Intro overlay UI (loader + skip) | DONE ✅ | d76f9cd | `#intro` strip + bar + % + `skip ⏎` |
+| 3 | Fly-in path + loop integration (DF1) | DONE ✅ | d76f9cd | bezier ends byte-exactly at `vantages[0]`; handoff deltas 0–1px |
+| 4 | Real asset progress (DF3) | DONE ✅ | d76f9cd | per-GLB `done/total` (simpler + more robust than LoadingManager's growing itemsTotal); `finally` → 1 |
+| 5 | Session / skip / reduced-motion paths (DF4) | DONE ✅ | d76f9cd | wheel/Enter/button skip; sessionStorage; RM never flies |
+| 6 | Local verification | DONE ✅ | — | see evidence block; screenshots in [`evidence/`](evidence/) |
+| 7 | PR + owner gate | in_progress | — | merge authorized for this session |
 
 ## Acceptance criteria → step
 
@@ -42,7 +42,35 @@ Blocked-by: #3, #4 (DONE — [PR-10], [PR-12]); #5 also shipped ([PR-14])
 
 ## Plan defects observed
 
-*(log as they happen, not at session wrap)*
+**The heuristic HTTP cache bites *imported* modules even with a page-URL bust.**
+`v2.html?b=N` re-fetches `main.js` (recent mtime → tiny heuristic TTL), but
+`./state.js`'s cached copy — fetched hours earlier when its mtime was days old —
+had a multi-hour heuristic freshness and was served **without revalidation**,
+so the browser threw "no export named flyProgress" while disk and server were
+both correct. Diagnosis: `fetch(url)` vs `fetch(url, {cache:'no-store'})`
+returned different byte lengths. Fix for verification: disable the cache via
+CDP — and note `Network.setCacheDisabled` only works **after**
+`Network.enable` (the first attempt silently did nothing). Production is
+unaffected (GitHub Pages serves `Cache-Control: max-age=600`).
+
+**DF3 amended: per-GLB counter instead of `LoadingManager.onProgress`.** The
+manager's `itemsTotal` grows as items queue, producing non-monotonic fractions.
+A `done/names.length` counter over the 8 known GLBs is monotonic by
+construction and needs no manager plumbing; `finally { assetFrac = 1 }` keeps
+the graceful-fallback landing.
+
+**Step-6 evidence (this session):** `node --test` → **34 pass / 0 fail**;
+debug-hook grep clean. All browser checks with CDP cache disabled, fresh
+`sessionStorage` per case. **First load (desktop 1280×800):** INBOUND from the
+first sampled frame, loader on; rAF continuity trace across the handoff →
+**per-frame deltas 0–1px** (no camera jump), ends TARGET ACQUIRED / panel 1.
+**Throttled (200 KB/s ≈ 7s kit):** loader steps 0→13→25→38→50→63→75→88→100%
+(real per-GLB progress) and the landing **waits** — handoff at 7.35s vs the
+5.2s flight. **Replay (same session):** no intro, instant dock. **Skip:**
+wheel mid-flight → instant dock at 00 · OVERWATCH, session marked; button
+skip ✓; post-skip travel to 01 · EXPERIENCE works. **Reduced motion:** no
+fly-in, instant dock. **Mobile 390×844:** intro plays with visible loader,
+lands clean. **0 console errors/warnings on every pass.**
 
 ## Carry-forward invariants (Slices 1–3 — do NOT regress)
 
