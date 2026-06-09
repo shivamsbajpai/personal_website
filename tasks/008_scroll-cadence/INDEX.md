@@ -33,6 +33,17 @@ AC-6 → 3,5 (full AC text in [#23])
    (a leftover `python3 -m http.server 8099` may already serve the repo —
    [`probe.mjs`](probe.mjs) uses it for live state traces via `window.__optic`).
 
+## Preview deploy (post-plan addition)
+
+[PR-25] (`task/23-v2-preview`, MERGED 2026-06-10) ported the cadence to
+master's `/v2.html` staging page for the owner's real-phone feel test —
+`scene/` + unit suites byte-identical to this branch, plus v2-side hint
+copy/nudge CSS and a `?v=` import bust. Live-verified on
+shivambajpai.com/v2.html (~40s after merge). **Gotchas hit:** the merge
+auto-closed [#23] despite refs-only keywords (reopened with comment —
+the known close-linked-issues footgun), and when cutover [PR-22] merges,
+`v2.html` will conflict with this preview (resolve by taking the redirect).
+
 ## Plan defects observed
 
 1. **Nudge animation corrupted the measurement it acknowledged.** The D5
