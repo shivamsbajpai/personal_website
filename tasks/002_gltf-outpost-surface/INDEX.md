@@ -15,7 +15,7 @@ Blocked-by: #3 (DONE — merged via PR #10)
 | 4 | WebGL holo-screen on a prop (DS4) | DONE ✅ | 4b11f4b | emissive scanline/flicker/sweep ShaderMaterial + dark glass backing on a field-terminal prop per checkpoint; fades by 1−infoAmt; uTime freezes under reduced-motion |
 | 5 | CSS3D crisp panel + cross-fade (DS5) | DONE ✅ | cf5a1b0 | **hybrid** (owner-chosen): holo→CSS3D reveal card at the outpost→existing flat crisp panel; reading system untouched. See DS5 amendment in defects |
 | 6 | Reduced-motion path (DS6) | DONE ✅ | 4b11f4b, cf5a1b0 | holo uTime freeze + opacity-only card/panel cross-fade; whole-path verified under emulated `prefers-reduced-motion` at step 7 (travel loop preserved, holo static, card+panel still cross-fade) |
-| 7 | Local verification | spec ✅ code ✅ — **mobile card fix UNCOMMITTED** | — | `node --test` 13 pass; Playwright smoke 0 console errors, 8 GLBs 200, full path info→travel→dock verified live + card-reveal mid-band captured. **Mobile (<768px) found the reveal card clipping off the right edge → fixed** (responsive `cardScale()`/`cardXOff()` in `scene/main.js`, desktop path unchanged at k=1). Diff staged in working tree, **needs commit** |
+| 7 | Local verification | DONE ✅ | 30d70aa, e6896e5 | `node --test` 13 pass; Playwright smoke 0 console errors, 8 GLBs 200, full path info→travel→dock verified live on desktop + mobile + reduced-motion. Mobile card clip fixed twice: responsive `cardScale()`/`cardXOff()` (`30d70aa`) **plus a per-frame projected-x clamp** (`e6896e5`) after a live rAF trace showed the frozen-state verify had masked mid-glide clipping (see defects). Evidence screenshots in [`evidence/`](evidence/) |
 | 8 | Owner approval gate | pending | — | sign-off before Slice 3 (#5); bundle deferred visual-tuning calls (prop lighting, holo prominence, mobile card aesthetics) |
 
 ## Acceptance criteria → step
@@ -51,17 +51,29 @@ Blocked-by: #3 (DONE — merged via PR #10)
    class. `css3d.render(cssScene, camera)` runs after `composer.render()`. CSS
    for `.holo-card`/`#css3d` is in `v2.html`. The flat panel's layout/scroll/
    measure path is untouched.
-6. **Steps 6 & 7 verification DONE this session** (see evidence block below). The
-   one remaining action before step 8: **commit the uncommitted mobile-card fix**
-   in `scene/main.js` (responsive `cardScale()`/`cardXOff()`), then open/refresh the
-   PR for #4 with the full `## Test plan`. Then **Step 8** (owner approval gate) —
-   bundle the deferred tuning calls below (prop lighting, holo prominence, and now
-   final mobile reveal-card aesthetics). Keep Slice-1 invariants intact.
+6. **Steps 1–7 DONE; PR open.** The mobile-card fix landed in two commits:
+   `30d70aa` (responsive scale/seat) + `e6896e5` (per-frame projected-x clamp —
+   a live rAF trace falsified the earlier frozen-state `fitsWidth:true`, see
+   defects). Full re-verification on the final build passed (evidence below +
+   [`evidence/`](evidence/) screenshots). **Next = Step 8 (owner approval gate):**
+   the owner reviews/merges the PR for #4 — bundle the deferred tuning calls
+   (prop lighting, holo prominence, final mobile reveal-card aesthetics). Do
+   NOT merge the PR or close #4 yourself; after the owner merges, write
+   `summary.md`, confirm #4 closed, tick the box in epic #2.
 
-   **Suggested commit:** `fix: keep CSS3D reveal card on-screen + readable on narrow viewports`
-   covering only the `scene/main.js` diff (no debug hooks present — grep-verified clean).
+**Final-build re-verification evidence (PR session, post-clamp `e6896e5`):**
+`node --test` → **13 pass**; `node --check scene/main.js` → OK; debug-hook grep →
+clean. Live rAF trace (one sample per frame, both arrivals) at **390×844**:
+**28/28 visible frames fit** the viewport (pre-clamp: 12/28; at op>0.5 pre-clamp
+only 8/18 fit, worst right edge 493px in a 390 frame and one arrival exited fully
+left at peak opacity). **Desktop 1280×800:** 14/14 trace frames fit; settled card
+geometry **byte-identical pre/post clamp** (active card 370px at x 618–988).
+**Reduced-motion:** travel loop preserved (TRAVERSING), card band fires (0.92),
+settles to panel 1. **0 console errors/warnings on every pass.** Screenshots
+(committed under [`evidence/`](evidence/)): desktop dock/travel/card-midband/
+dock-cp1, mobile card-midband + dock-panel.
 
-**Step 6+7 verification evidence (this session):** `node --test` → **13 pass**;
+**Step 6+7 verification evidence (prior session, pre-clamp):** `node --test` → **13 pass**;
 `node --check scene/main.js` → OK; debug-hook grep on `scene/main.js`+`v2.html` →
 **clean**. Playwright smoke on `/v2.html` (desktop 1200/1280): **0 console
 errors/warnings**, all **8 GLBs 200**, full live path verified by driving real wheel
@@ -190,6 +202,22 @@ desktop path can't regress. Verified `fitsWidth:true` + readable at 390×844; de
 unchanged at 1280. **Final mobile aesthetics (exact size/seat) remain an owner-gate
 (step 8) visual call** — this fix makes it correct-and-readable, not necessarily
 final.
+
+**Frozen-state verification masked live-arrival clipping — the card band runs
+while the camera is still gliding.** The `fitsWidth:true` above was measured with
+`infoAmt` frozen at a *settled* camera; live, `infoAmt` (which drives the card's
+0.28–0.74 visibility band) and the camera glide ease concurrently, so the
+world-anchored card crosses the frustum edge exactly at peak opacity. A per-frame
+rAF trace at 390×844 showed only 8/18 op>0.5 frames on-screen (worst right edge
+493px in a 390 frame; the next arrival exited fully *left* at op 1). Fix
+(`e6896e5`): each visible frame re-seats the card from its anchor, projects it,
+and clamps NDC x to (1 − (cardWidth+16px)/viewport) — the card rides the screen
+edge and settles onto the terminal as the camera does. The clamp is a strict
+no-op on frames where the card already fits, so settled geometry (desktop and
+mobile) is unchanged — re-verified byte-identical at 1280. Post-fix trace:
+28/28 visible frames fit. **Lesson: verify transitional UI with a live per-frame
+trace, not a frozen snapshot — freezing the choreography also freezes the camera,
+which can hide exactly the interaction under test.**
 
 ## Carry-forward invariants (from Slice 1 summary — do NOT regress)
 
