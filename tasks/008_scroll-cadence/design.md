@@ -23,6 +23,12 @@ keeps the unreadable frictionless exit).
 
 ## D2 — Two counters: `settle` (arrival) and `arm` (edge release)
 
+> **2026-06-10 amendment:** after feel-testing the live /v2 preview on a real
+> phone, the owner tuned both gates from 2 taps to **1** (`EDGE_TAPS =
+> SETTLE_TAPS = 1`). The machine, unit suite, and e2e spec are
+> constant-driven, so only the two constants changed; everything below reads
+> "EDGE_TAPS/SETTLE_TAPS" where it says a count.
+
 **Choice:** `settle = 2` set on scroll-travel arrival absorbs *all* strokes
 while > 0 (panel frozen). `arm` counts absorbed *edge pushes*: a stroke that
 could not move content and pushes past a pinned edge decrements it; at 0 the

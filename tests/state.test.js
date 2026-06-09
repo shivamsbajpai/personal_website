@@ -67,11 +67,11 @@ test('pinned edge releases only after EDGE_TAPS absorbed pushes', () => {
 
 test('moving back into content re-arms the edge gate', () => {
   let s = stroke(initState(), 5000);   // pinned
-  s = stroke(s, 100);                  // absorb 1 (arm: 1)
+  s = stroke(s, 100);                  // absorb one push (arm: EDGE_TAPS-1)
   s = stroke(s, -50);                  // read back up — moving stroke
   assert.equal(s.arm, EDGE_TAPS, 're-armed by movement');
   s = stroke(s, 50);                   // back to the pin (moving stroke)
-  s = stroke(s, 100); s = stroke(s, 100);
+  for (let i = 0; i < EDGE_TAPS; i++) s = stroke(s, 100);
   assert.equal(s.phase, PHASE.READING, 'full gate again after re-arm');
   s = stroke(s, 100);
   assert.equal(s.phase, PHASE.TRAVELLING);
@@ -112,11 +112,14 @@ test('after arrival, SETTLE_TAPS strokes are absorbed whole (spam guard)', () =>
   assert.equal(s.readScroll, 300, 'reading resumes after the settle');
 });
 
-test('settle strokes count toward arm: backing out after arrival costs 2, not 4', () => {
+test('settle strokes count toward arm: backing out after arrival costs SETTLE_TAPS, not SETTLE_TAPS + EDGE_TAPS', () => {
   let s = { phase: PHASE.TRAVELLING, cp: 0, readScroll: 0, travelT: 2 / 3, from: 0, to: 1, settle: 0, arm: 0 };
-  s = commitStroke(s, 1, false, CMAX, COUNT);    // arrive cp1, settle=2 arm=2
-  s = stroke(s, -100); s = stroke(s, -100);      // 2 absorbed (settle AND arm drain)
-  assert.equal(s.phase, PHASE.READING);
+  s = commitStroke(s, 1, false, CMAX, COUNT);    // arrive cp1, settle/arm fully charged
+  const absorbed = Math.max(SETTLE_TAPS, EDGE_TAPS);   // settle AND arm drain together
+  for (let i = 0; i < absorbed; i++) {
+    s = stroke(s, -100);
+    assert.equal(s.phase, PHASE.READING, `back-out stroke ${i + 1} absorbed`);
+  }
   s = stroke(s, -100);                           // released back toward cp0
   assert.equal(s.phase, PHASE.TRAVELLING);
   assert.equal(s.to, 0);
@@ -136,7 +139,7 @@ test('reversing through a middle checkpoint does NOT fly through it', () => {
   // content + the edge gate before the pin releases toward cp0.
   let s = { phase: PHASE.TRAVELLING, cp: 2, readScroll: 0, travelT: 2 / 3, from: 2, to: 1, settle: 0, arm: 0 };
   s = clampSentinel(commitStroke(s, -1, false, CMAX, COUNT));   // arrive cp1 at the END
-  s = stroke(s, -100); s = stroke(s, -100);                     // settle absorbed
+  for (let i = 0; i < SETTLE_TAPS; i++) s = stroke(s, -100);    // settle absorbed
   assert.equal(s.readScroll, CMAX, 'parked at the END of cp1');
   s = stroke(s, -200);
   assert.deepEqual([s.phase, s.cp, s.readScroll], [PHASE.READING, 1, CMAX - 200], 'reads, does not leave');
@@ -184,13 +187,16 @@ test('contentMax jitter (±2px) neither re-arms nor unpins the edge gate', () =>
   // mobile URL-bar resize). A grown max lets a push "move" 1-2px — that must
   // still count as a pinned push, or spam at the edge re-arms forever.
   let s = stroke(initState(), 5000);            // pinned at CMAX, fully armed
-  s = stroke(s, 100, CMAX + 2);                 // max grew: push moves 2px ≤ slop
-  assert.equal(s.arm, EDGE_TAPS - 1, 'jitter movement did not re-arm');
-  // max shrinks: the render loop clamps readScroll every frame (caller contract)
-  s = { ...s, readScroll: Math.min(s.readScroll, CMAX - 2) };
-  s = stroke(s, 100, CMAX - 2);
-  assert.equal(s.arm, EDGE_TAPS - 2);
-  s = stroke(s, 100, CMAX + 1);
+  const jitter = (i) => CMAX + [2, -2, 1][i % 3];   // max grows/shrinks a couple px per push
+  for (let i = 0; i < EDGE_TAPS; i++) {
+    // when max shrinks, the render loop clamps readScroll every frame (caller contract)
+    s = { ...s, readScroll: Math.min(s.readScroll, jitter(i)) };
+    s = stroke(s, 100, jitter(i));
+    assert.equal(s.arm, EDGE_TAPS - 1 - i, 'jitter movement did not re-arm');
+    assert.equal(s.phase, PHASE.READING);
+  }
+  s = { ...s, readScroll: Math.min(s.readScroll, jitter(EDGE_TAPS)) };
+  s = stroke(s, 100, jitter(EDGE_TAPS));
   assert.equal(s.phase, PHASE.TRAVELLING, 'gate released despite jitter');
 });
 

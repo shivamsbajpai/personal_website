@@ -64,7 +64,8 @@ the known close-linked-issues footgun), and when cutover [PR-22] merges,
 ## Locked decisions (see [`design.md`](design.md))
 
 - D1 stroke quantum: ⅓ gap per stroke; `TRAVEL_LEN` removed
-- D2 `settle=2` arrival freeze + `arm=2` edge release; settle decrements arm
+- D2 `settle` arrival freeze + `arm` edge release; settle decrements arm —
+  **both tuned 2 → 1 after the owner's /v2 phone feel-test (2026-06-10)**
 - D3 stroke detection in main.js (touch end / wheel 250 ms quiet or 800 px
   re-arm / keypress, 48 px commit threshold); state.js stays pure
 - D4 boot & fast-travel skip settle; both keep `arm=2`
