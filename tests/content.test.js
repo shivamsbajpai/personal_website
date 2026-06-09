@@ -1,4 +1,4 @@
-// Seam 2 — DOM content floor for v2.html.
+// Seam 2 — DOM content floor for the deployed page (index.html — the RECON build since the slice-7 cutover).
 // The contract: every checkpoint's content exists statically in the served
 // HTML (readable with JS disabled, indexable, screen-reader reachable), and
 // the copy is verbatim — byte-for-byte the same sentences as the live site
@@ -11,23 +11,26 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const v2 = readFileSync(join(root, 'v2.html'), 'utf8');
-const live = readFileSync(join(root, 'index.html'), 'utf8');
+const deployed = readFileSync(join(root, 'index.html'), 'utf8');
+// Verbatim-audit source of truth: the ORIGINAL site, frozen as a fixture
+// (DH1). Post-cutover index.html IS the RECON build, so reading it live
+// would make the audit vacuous; the fixture keeps the guarantee meaningful.
+const live = readFileSync(join(root, 'tests', 'fixtures', 'legacy-index.html'), 'utf8');
 
 // Strip tags, decode nothing (entities must match verbatim too), collapse
 // whitespace — so copy reflowed across source lines still compares equal.
 const textOf = (html) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-const v2Text = textOf(v2);
-const has = (s) => v2Text.includes(textOf(s));
+const deployedText = textOf(deployed);
+const has = (s) => deployedText.includes(textOf(s));
 
 /* ---------- structural floor: the panels exist statically ---------- */
 
 test('all five checkpoint panels are static HTML inside #infoLayer', () => {
   for (const label of ['00 · OVERWATCH', '01 · EXPERIENCE', '02 · WORK', '03 · ABOUT', '04 · ESTABLISH COMMS']) {
-    assert.ok(v2.includes(label), `missing panel label: ${label}`);
+    assert.ok(deployed.includes(label), `missing panel label: ${label}`);
   }
   // 5 real <section class="panel"> blocks in the raw file — not JS-generated
-  assert.equal((v2.match(/<section class="panel"/g) || []).length, 5);
+  assert.equal((deployed.match(/<section class="panel"/g) || []).length, 5);
 });
 
 test('content is in the raw HTML, not injected by main.js', () => {
@@ -46,19 +49,19 @@ test('experience: every role present with company and period', () => {
     'Product Management Intern', 'Aug 2021 — Dec 2021',
     'Software Development Intern', 'Afour Technologies', 'Jan 2021 — Jun 2021',
     'Zaggle Prepaid Ocean Services', 'Aug 2020 — Dec 2020',
-  ]) assert.ok(v2.includes(s), `missing: ${s}`);
+  ]) assert.ok(deployed.includes(s), `missing: ${s}`);
 });
 
 test('experience: the four SquareX systems', () => {
   for (const s of ['Multi-cloud orchestrator', 'Identity-sync engine', 'Identity provider', 'Domain-intelligence services'])
-    assert.ok(v2.includes(s), `missing system: ${s}`);
+    assert.ok(deployed.includes(s), `missing system: ${s}`);
 });
 
 /* ---------- all 7 projects ---------- */
 
 test('work: all seven projects present', () => {
   for (const p of ['second-brain', 'sales-saathi', 'lomasa-cli', 'photo-gallery', 'farm-pro', 'yt-skin', 'ToLetLife'])
-    assert.ok(v2.includes(`<span class="project-name">${p}</span>`), `missing project: ${p}`);
+    assert.ok(deployed.includes(`<span class="project-name">${p}</span>`), `missing project: ${p}`);
 });
 
 /* ---------- links: resume + external ---------- */
@@ -69,7 +72,7 @@ test('contact surface: email, GitHub, lomasa-ai, resume', () => {
     'https://github.com/shivamsbajpai',
     'https://github.com/lomasa-ai',
     './latest_resume.pdf',
-  ]) assert.ok(v2.includes(`href="${href}"`), `missing link: ${href}`);
+  ]) assert.ok(deployed.includes(`href="${href}"`), `missing link: ${href}`);
 });
 
 test('project + experience links preserved', () => {
@@ -80,18 +83,18 @@ test('project + experience links preserved', () => {
     'https://github.com/shivamsbajpai/tolet_life_api',
     'https://www.zscaler.com/press/zscaler-acquires-squarex',
     'https://github.com/claudeforssb',
-  ]) assert.ok(v2.includes(`href="${href}"`), `missing link: ${href}`);
+  ]) assert.ok(deployed.includes(`href="${href}"`), `missing link: ${href}`);
 });
 
 test('external links open safely (target=_blank pairs with rel=noopener)', () => {
-  const anchors = v2.match(/<a [^>]*target="_blank"[^>]*>/g) || [];
+  const anchors = deployed.match(/<a [^>]*target="_blank"[^>]*>/g) || [];
   assert.ok(anchors.length >= 10);
   for (const a of anchors) assert.ok(a.includes('rel="noopener"'), `missing rel=noopener: ${a}`);
 });
 
 /* ---------- verbatim audit: copy strings byte-identical to the live site ----
    Extract the real copy from index.html (the source of truth) and assert each
-   appears in v2.html unchanged (whitespace-normalized, entities intact). ---- */
+   appears in the deployed page unchanged (whitespace-normalized, entities intact). ---- */
 
 const grab = (re) => {
   const out = [];
@@ -137,7 +140,7 @@ test('verbatim: about paragraphs, stack grid, Tvash', () => {
     assert.ok(has(s), `stack item altered: ${textOf(s).slice(0, 60)}…`);
   const [tvash] = grab(/<div class="tvash-block reveal">[\s\S]*?<p>([\s\S]*?)<\/p>/g);
   assert.ok(tvash && has(tvash), 'Tvash copy altered or missing');
-  assert.ok(v2.includes('Meet Tvash'));
+  assert.ok(deployed.includes('Meet Tvash'));
 });
 
 test('verbatim: section heads and stats', () => {
@@ -150,5 +153,5 @@ test('verbatim: section heads and stats', () => {
     'AI &amp; agent infrastructure', 'Apps, tools &amp; ML',
     '5+ yrs', 'shipping software', '3 clouds', 'AWS · GCP · Azure',
     '10+ regions', 'in production', '5 IdPs', 'identity federation',
-  ]) assert.ok(v2.includes(s), `missing: ${s}`);
+  ]) assert.ok(deployed.includes(s), `missing: ${s}`);
 });
