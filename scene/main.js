@@ -4,7 +4,7 @@
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
 // real content (Slice 3). Outpost props render procedurally on first paint,
 // then lazy-swap to a cloned CC0 GLTF kit once loaded (Slice 2, DS2/DS3).
-import { initState, applyScroll, commitStroke, cameraFloat, modeOf, flyProgress, startFastTravel, tickAutoTravel, PHASE, MODE } from './state.js';
+import { initState, applyScroll, commitStroke, scrubTravel, cameraFloat, modeOf, flyProgress, startFastTravel, tickAutoTravel, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -582,6 +582,9 @@ function initScene(renderer) {
                                // (~2400 px, the old TRAVEL_LEN feel) instead of
                                // committing once and going dead
   const KEY_COMMIT_MS = 160;   // held-key repeat must not machine-gun strokes
+  const TRAVEL_SCRUB_LEN = 2400; // px of wheel to cross one gap (the pre-stroke
+                                 // TRAVEL_LEN feel) — wheel/trackpad scrub travel
+                                 // px-true; only touch/keys use the stroke quantum
 
   const MOVE_SLOP = 3;         // cumulative px of panel movement below which a stroke is
                                // "unmoved" — contentMax jitters a few px (see PIN_SLOP in
@@ -619,9 +622,18 @@ function initScene(renderer) {
     }
     syncPanel();
   };
-  const feed = (d, autoCommit = true) => {
+  const feed = (d, autoCommit = true, scrub = false) => {
     if (fcIsOpen()) return;                     // palette captures input while open (DT4)
     if (intro.active) { endIntro(); return; }   // an impatient scroll = skip (DF4)
+    if (scrub && app.phase === PHASE.TRAVELLING && !app.auto) {
+      // wheel/trackpad mid-travel: px-true scrub (every pixel glides the
+      // camera; a burst that only steps once per commit reads as "stuck").
+      // Mark the burst committed so it doesn't ALSO step the path 1/3.
+      strokeSum += d; strokeCommitted = true; strokeCommitSum = strokeSum;
+      app = scrubTravel(app, d, TRAVEL_SCRUB_LEN);
+      if (app.phase === PHASE.READING) syncPanel();   // arrived / cancelled mid-burst
+      return;
+    }
     if (strokeStartRs == null) strokeStartRs = app.readScroll;
     strokeSum += d;
     // an already-absorbed stroke stays absorbed: its remaining deltas must not
@@ -642,7 +654,7 @@ function initScene(renderer) {
   let wheelTimer = 0;
   addEventListener('wheel', (e) => {
     e.preventDefault();
-    feed(e.deltaY);
+    feed(e.deltaY, true, true);
     if (strokeCommitted && Math.abs(strokeSum - strokeCommitSum) >= WHEEL_REARM_PX) strokeEnd();
     clearTimeout(wheelTimer); wheelTimer = setTimeout(strokeEnd, WHEEL_QUIET_MS);
   }, { passive: false });

@@ -74,31 +74,53 @@ export function applyScroll(state, delta, contentMax) {
  * @param {number}  contentMax max scroll of the current content (px)
  * @param {number}  count      number of checkpoints
  */
+/* Advance an in-flight travel by a signed path fraction; shared by the
+   stroke quantum (commitStroke) and the wheel scrub (scrubTravel). */
+function advanceTravel(state, tDelta) {
+  const forward = state.to > state.from;
+  const t = state.travelT + tDelta;
+  if (t >= 1 - EPS) {
+    // Arrive. Land at the edge the reader is moving INTO so the panel is
+    // read in full before the pin releases: forward -> top (read down);
+    // backward -> end (read up). The backward sentinel is clamped to the
+    // destination's contentMax by the caller (same pattern as the
+    // forward-cancel below). Without this, backward arrival at
+    // readScroll:0 IS the reverse-travel bound, so one more up-scroll
+    // immediately leaves and the checkpoint is flown through with no
+    // reading dwell (content never shows).
+    const land = forward ? 0 : Number.MAX_SAFE_INTEGER;
+    return { phase: PHASE.READING, cp: state.to, readScroll: land, travelT: 0, from: state.to, to: state.to, settle: SETTLE_TAPS, arm: EDGE_TAPS };
+  }
+  if (t <= EPS) {
+    // Cancelled back to origin: forward-cancel returns to the end of that
+    // content. No settle (the reader chose to come back, not spam-arrived);
+    // re-leaving re-arms like any other edge push.
+    const back = forward ? Number.MAX_SAFE_INTEGER : 0;
+    return { phase: PHASE.READING, cp: state.from, readScroll: back, travelT: 0, from: state.from, to: state.from, settle: 0, arm: EDGE_TAPS };
+  }
+  return { ...state, travelT: t };
+}
+
+/**
+ * Continuous travel scrub for px-true input devices (wheel/trackpad): every
+ * pixel moves the camera, so desktop travel glides with the scroll instead
+ * of stepping once per burst. Touch swipes and keypresses keep the stroke
+ * quantum (commitStroke) — the phone's "3 swipes per gap" promise. Arrival /
+ * cancel semantics (settle, arm, landing edge) are identical to strokes.
+ * @param {number} delta     px (positive = down/forward)
+ * @param {number} travelLen px of scroll to traverse one checkpoint gap
+ */
+export function scrubTravel(state, delta, travelLen) {
+  if (state.auto || state.phase !== PHASE.TRAVELLING || !delta) return state;
+  const forward = state.to > state.from;
+  return advanceTravel(state, (forward ? delta : -delta) / Math.max(1, travelLen));
+}
+
 export function commitStroke(state, dir, moved, contentMax, count) {
   if (state.auto || !dir) return state;   // fast-travel completes; scroll is ignored mid-flight (DT1)
   if (state.phase === PHASE.TRAVELLING) {
     const forward = state.to > state.from;
-    const t = state.travelT + (forward ? dir : -dir) / TRAVEL_STEPS;
-    if (t >= 1 - EPS) {
-      // Arrive. Land at the edge the reader is moving INTO so the panel is
-      // read in full before the pin releases: forward -> top (read down);
-      // backward -> end (read up). The backward sentinel is clamped to the
-      // destination's contentMax by the caller (same pattern as the
-      // forward-cancel below). Without this, backward arrival at
-      // readScroll:0 IS the reverse-travel bound, so one more up-scroll
-      // immediately leaves and the checkpoint is flown through with no
-      // reading dwell (content never shows).
-      const land = forward ? 0 : Number.MAX_SAFE_INTEGER;
-      return { phase: PHASE.READING, cp: state.to, readScroll: land, travelT: 0, from: state.to, to: state.to, settle: SETTLE_TAPS, arm: EDGE_TAPS };
-    }
-    if (t <= EPS) {
-      // Cancelled back to origin: forward-cancel returns to the end of that
-      // content. No settle (the reader chose to come back, not spam-arrived);
-      // re-leaving re-arms like any other edge push.
-      const back = forward ? Number.MAX_SAFE_INTEGER : 0;
-      return { phase: PHASE.READING, cp: state.from, readScroll: back, travelT: 0, from: state.from, to: state.from, settle: 0, arm: EDGE_TAPS };
-    }
-    return { ...state, travelT: t };
+    return advanceTravel(state, (forward ? dir : -dir) / TRAVEL_STEPS);
   }
   // READING
   if (state.settle > 0) return { ...state, settle: state.settle - 1, arm: Math.max(0, state.arm - 1) };
