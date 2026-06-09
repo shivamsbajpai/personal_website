@@ -221,6 +221,42 @@
   .project-links { display: flex; gap: 18px; margin-top: 14px; }
   .project-links a { font-size: 13px; font-weight: 510; }
 
+  /* Experience */
+  .exp {
+    position: relative; border-left: 2px solid var(--border-solid);
+    padding: 0 0 2px 24px; margin-bottom: 28px;
+  }
+  .exp:last-child { margin-bottom: 0; }
+  .exp::before {
+    content: ''; position: absolute; left: -5px; top: 6px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px rgba(113, 112, 255, 0.6);
+  }
+  .exp-header {
+    display: flex; align-items: baseline; gap: 10px;
+    flex-wrap: wrap; margin-bottom: 3px;
+  }
+  .exp-role { font-size: 17px; font-weight: 590; letter-spacing: -0.3px; color: var(--text); }
+  .exp-company { font-size: 15px; font-weight: 510; color: var(--accent); }
+  .exp-period {
+    font-size: 12px; color: var(--text-4); margin-left: auto;
+    letter-spacing: 0.2px; white-space: nowrap;
+  }
+  .exp-meta {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11.5px; color: var(--text-4); margin-bottom: 12px; letter-spacing: 0.2px;
+  }
+  .exp-list { list-style: none; margin: 0; padding: 0; max-width: 620px; }
+  .exp-list li {
+    position: relative; padding-left: 18px; margin-bottom: 7px;
+    font-size: 14.5px; line-height: 1.6; color: var(--text-3); letter-spacing: -0.16px;
+  }
+  .exp-list li:last-child { margin-bottom: 0; }
+  .exp-list li::before {
+    content: ''; position: absolute; left: 0; top: 9px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--text-4);
+  }
+
   /* About */
   .about-text { font-size: 16px; line-height: 1.68; color: var(--text-2); max-width: 620px; }
   .about-text p { margin-bottom: 16px; }
@@ -297,6 +333,7 @@
 <nav class="site-nav" aria-label="Primary">
   <div class="nav-inner">
     <span class="nav-brand"><span class="dot"></span>shivam som bajpai</span>
+    <a href="#experience">Experience</a>
     <a href="#projects">Projects</a>
     <a href="#about">About</a>
     <a class="nav-cta" href="mailto:ssbajpai9@gmail.com">Email</a>
@@ -321,6 +358,77 @@
     </div>
     <a class="scroll-hint" href="#projects" aria-label="Scroll to projects">scroll &darr;</a>
   </header>
+
+  <section id="experience">
+    <h2 class="section-label">Experience</h2>
+
+    <div class="exp">
+      <div class="exp-header">
+        <span class="exp-role">Software Engineer</span>
+        <span class="exp-company">SquareX</span>
+        <span class="exp-period mono">Dec 2023 &mdash; Jul 2025</span>
+      </div>
+      <p class="exp-meta">browser-native enterprise security &middot; remote</p>
+      <ul class="exp-list">
+        <li>Built and owned multiple core backend services (Go, Python) for a multi-tenant, browser-native enterprise security platform on GCP/AWS/Azure.</li>
+        <li>Developed a multi-cloud node-orchestration control plane that provisions, autoscales, and upgrades compute across AWS, GCP, and Azure in 10+ regions.</li>
+        <li>Built identity sync from multiple identity providers and a multi-tenant OIDC/OAuth2 identity provider with per-tenant isolation and federated login.</li>
+        <li>Engineered the policy and access-control layer (policy engine, DLP, SSO, device and group management) and security-telemetry microservices.</li>
+        <li>Owned reliability and delivery across services &mdash; CI/CD, observability, SLO alerting, secret management, and multi-region deployment tooling.</li>
+      </ul>
+    </div>
+
+    <div class="exp">
+      <div class="exp-header">
+        <span class="exp-role">Associate Product Manager</span>
+        <span class="exp-company">FinBox</span>
+        <span class="exp-period mono">Jan 2022 &mdash; Sep 2023</span>
+      </div>
+      <p class="exp-meta">bengaluru, india</p>
+      <ul class="exp-list">
+        <li>Core maintainer of the FinBox lending platform &mdash; a Go backend powering lending products.</li>
+        <li>Managed and migrated infrastructure to a secure, compliant cloud using Terraform.</li>
+      </ul>
+    </div>
+
+    <div class="exp">
+      <div class="exp-header">
+        <span class="exp-role">Product Management Intern</span>
+        <span class="exp-company">FinBox</span>
+        <span class="exp-period mono">Aug 2021 &mdash; Dec 2021</span>
+      </div>
+      <p class="exp-meta">bengaluru, india</p>
+      <ul class="exp-list">
+        <li>Built Grafana and Redash dashboards tracking key metrics and funnel conversion.</li>
+        <li>Developed Airflow DAGs and Python scripts to automate various tasks.</li>
+      </ul>
+    </div>
+
+    <div class="exp">
+      <div class="exp-header">
+        <span class="exp-role">Software Development Intern</span>
+        <span class="exp-company">Afour Technologies</span>
+        <span class="exp-period mono">Jan 2021 &mdash; Jun 2021</span>
+      </div>
+      <p class="exp-meta">pune, india</p>
+      <ul class="exp-list">
+        <li>Worked on the backend of an internal product in .NET Core.</li>
+        <li>Built the backend of a Recruitment Application Tracking System with FastAPI (Python).</li>
+      </ul>
+    </div>
+
+    <div class="exp">
+      <div class="exp-header">
+        <span class="exp-role">Software Development Intern</span>
+        <span class="exp-company">Zaggle Prepaid Ocean Services</span>
+        <span class="exp-period mono">Aug 2020 &mdash; Dec 2020</span>
+      </div>
+      <p class="exp-meta">hyderabad, india</p>
+      <ul class="exp-list">
+        <li>Developed the UI designs for an iOS application in Swift.</li>
+      </ul>
+    </div>
+  </section>
 
   <section id="projects">
     <h2 class="section-label">Projects</h2>
