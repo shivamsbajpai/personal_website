@@ -4,7 +4,7 @@
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
 // real content (Slice 3). Outpost props render procedurally on first paint,
 // then lazy-swap to a cloned CC0 GLTF kit once loaded (Slice 2, DS2/DS3).
-import { initState, applyScroll, cameraFloat, modeOf, PHASE, MODE } from './state.js';
+import { initState, applyScroll, cameraFloat, modeOf, flyProgress, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -439,11 +439,18 @@ function initScene(renderer) {
   }
 
   async function loadOutposts() {
+    const names = Object.keys(KIT);
     try {
+      // Real per-item progress for the fly-in loader (DF3). done/names.length is
+      // robust against LoadingManager's growing itemsTotal; the catch below also
+      // completes the fraction so the landing never hangs on a failed asset.
+      let done = 0;
       const loader = new GLTFLoader();
-      const names = Object.keys(KIT);
       const loaded = await Promise.all(names.map((n) =>
-        loader.loadAsync(KIT_BASE + n + '.glb').then((gltf) => [n, prepModel(gltf.scene, KIT[n])])));
+        loader.loadAsync(KIT_BASE + n + '.glb').then((gltf) => {
+          intro.assetFrac = Math.max(intro.assetFrac, ++done / names.length);
+          return [n, prepModel(gltf.scene, KIT[n])];
+        })));
       const kit = Object.fromEntries(loaded);
       anchors.forEach((a, i) => {
         const camp = buildGltfOutpost(kit, i * 37 + 3);
@@ -454,6 +461,8 @@ function initScene(renderer) {
       });
     } catch (e) {
       console.warn('GLTF outpost kit failed to load; keeping procedural props', e);
+    } finally {
+      intro.assetFrac = 1;   // success or graceful fallback — the fly-in may land either way
     }
   }
 
@@ -468,6 +477,49 @@ function initScene(renderer) {
     outPos.lerpVectors(vantages[i0].pos, vantages[i1].pos, t);
     outLook.lerpVectors(vantages[i0].look, vantages[i1].look, t);
   }
+
+  /* --- Slice 4: cinematic fly-in (DF1–DF4) ---------------------------------
+     A camera-only phase before the normal loop: a quadratic-bezier sweep that
+     ends byte-exactly at vantages[0], so the handoff has zero camera error and
+     the standard dock-into-INFO transition plays as the landing beat. Time
+     carries the sweep; the final approach is gated on real asset progress
+     (flyProgress, unit-tested in scene/state.js). Once per session; any
+     scroll gesture, Enter, or the skip button bails out. Reduced motion never
+     flies (the current instant boot is the reduced path). */
+  let introSeen = false;
+  try { introSeen = sessionStorage.getItem('reconIntroSeen') === '1'; }
+  catch { /* storage unavailable (private mode): fall back to once-per-load */ }
+  const intro = { active: !reduce && !introSeen, t0: 0, assetFrac: 0 };
+  const FLY_MS = 5200;
+  const flyStart = vantages[0].pos.clone().add(new THREE.Vector3(360, 240, 540));
+  const flyCtrl  = vantages[0].pos.clone().add(new THREE.Vector3(-200, 110, 280));
+  const flyLook0 = new THREE.Vector3(CHECKPOINTS[1].anchor[0], 0, CHECKPOINTS[1].anchor[1]); // gaze opens deep into the sector
+  function flyPose(p, outPos, outLook) {
+    const q = 1 - p, a = q * q, b = 2 * q * p, c = p * p;
+    outPos.set(
+      a * flyStart.x + b * flyCtrl.x + c * vantages[0].pos.x,
+      a * flyStart.y + b * flyCtrl.y + c * vantages[0].pos.y,
+      a * flyStart.z + b * flyCtrl.z + c * vantages[0].pos.z);
+    outLook.lerpVectors(flyLook0, vantages[0].look, p);
+  }
+  const introEl = document.getElementById('intro'),
+        introBar = document.getElementById('introBar'),
+        introPct = document.getElementById('introPct');
+  if (intro.active) {
+    introEl.classList.add('on');
+    outpostLoadStarted = true; loadOutposts();   // eager: the loader must show real streaming (DF3)
+  }
+  function endIntro() {
+    if (!intro.active) return;
+    intro.active = false;
+    try { sessionStorage.setItem('reconIntroSeen', '1'); } catch { /* fail open */ }
+    introEl.classList.add('done');
+    setTimeout(() => introEl.classList.remove('on'), 600);
+    // Snap to the dock vantage — a no-op on a natural landing (the path already
+    // ends there); on skip it jumps the rest of the sweep.
+    camPos.copy(vantages[0].pos); camLook.copy(vantages[0].look);
+  }
+  document.getElementById('introSkip').addEventListener('click', endIntro);
 
   /* --- post-processing: bloom (also the pipeline DoF will reuse) --- */
   const composer = new EffectComposer(renderer);
@@ -493,6 +545,7 @@ function initScene(renderer) {
     return Math.max(0, inner.scrollHeight - body.clientHeight);
   }
   const scroll = (d) => {
+    if (intro.active) { endIntro(); return; }   // an impatient scroll = skip (DF4)
     app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length, TRAVEL_LEN);
     // On arrival, activate the panel synchronously so its contentMax is measurable
     // (not 0 during the info fade-in) — otherwise the next scroll would skip the
@@ -507,6 +560,7 @@ function initScene(renderer) {
   addEventListener('wheel', (e) => { e.preventDefault(); scroll(e.deltaY); }, { passive: false });
 
   addEventListener('keydown', (e) => {
+    if (intro.active) { if (e.key === 'Enter') { e.preventDefault(); endIntro(); } return; }
     const body = panels[app.cp]?.querySelector('.panel-body');
     const page = (body ? body.clientHeight : 600) * 0.8, step = 90;
     if (e.key === 'Home') { e.preventDefault(); app = { ...app, readScroll: 0 }; return; }
@@ -551,7 +605,9 @@ function initScene(renderer) {
 
   const camPos = vantages[0].pos.clone(), camLook = vantages[0].look.clone();
   const tPos = new THREE.Vector3(), tLook = new THREE.Vector3();
-  let infoAmt = 1, activePanel = -1, booted = false, renderFloat = 0;
+  // infoAmt boots at 0 when the fly-in will play (the panel/dim must not flash
+  // before the sweep); otherwise 1, docked on Overwatch as before.
+  let infoAmt = intro.active ? 0 : 1, activePanel = -1, booted = false, renderFloat = 0;
 
   function setActivePanel(i) {
     if (i !== activePanel) { panels.forEach((p, k) => p.classList.toggle('active', k === i)); activePanel = i; }
@@ -565,6 +621,19 @@ function initScene(renderer) {
     if (app.phase === PHASE.READING) { const m = curContentMax(); if (app.readScroll > m) app.readScroll = m; }
 
     const md = modeOf(app);
+    if (intro.active) {
+      // Fly-in: scripted sweep, gated on real asset progress (DF1/DF2). The
+      // normal camera rig is bypassed wholesale; everything else (sun, dust,
+      // holo clocks, render) runs as usual underneath the cinematic.
+      if (!intro.t0) intro.t0 = t || performance.now();
+      const p = flyProgress(((t || performance.now()) - intro.t0) / FLY_MS, intro.assetFrac);
+      flyPose(p, camPos, camLook);
+      camera.position.copy(camPos); camera.lookAt(camLook);
+      const cells = Math.round(intro.assetFrac * 10);
+      introBar.textContent = '▰'.repeat(cells) + '░'.repeat(10 - cells);
+      introPct.textContent = Math.round(intro.assetFrac * 100) + '%';
+      if (p >= 1) endIntro();
+    } else {
     // Smooth the scroll-driven progress: discrete wheel/touch steps (~10% of a gap
     // each) become one continuous glide. This is what removes the bumpiness while
     // keeping travel scroll-driven (it only advances toward where you scrolled).
@@ -589,12 +658,13 @@ function initScene(renderer) {
     camLook.lerp(tLook, reduce ? 0.35 : 0.18);
     if (md === MODE.TRAVEL) { const f = camGround(camPos.x, camPos.z) + 8; if (camPos.y < f) camPos.y += (f - camPos.y) * 0.4; }
     camera.position.copy(camPos); camera.lookAt(camLook);
+    }
 
     sun.position.copy(camera.position).add(sunOffset);
     sun.target.position.set(camera.position.x, camera.position.y - 30, camera.position.z - 60);
     sun.target.updateMatrixWorld();
 
-    const targetInfo = md === MODE.INFO ? 1 : 0;
+    const targetInfo = (md === MODE.INFO && !intro.active) ? 1 : 0;   // the dock fade waits for the landing
     infoAmt += (targetInfo - infoAmt) * 0.12;
     document.body.classList.toggle('info', infoAmt > 0.5);
     if (md === MODE.INFO) setActivePanel(app.cp);
@@ -602,7 +672,7 @@ function initScene(renderer) {
     hudGrid.textContent = pad(3000 + renderFloat * 620, 4);
     hudRange.textContent = pad(180 + renderFloat * 220, 4) + 'm';
     hudHdg.textContent = pad(60 + renderFloat * 40, 3) + '°';
-    hudMode.textContent = md === MODE.INFO ? 'TARGET ACQUIRED' : 'TRAVERSING';
+    hudMode.textContent = intro.active ? 'INBOUND' : (md === MODE.INFO ? 'TARGET ACQUIRED' : 'TRAVERSING');
 
     const arr = dgeo.attributes.position.array;
     for (let i = 0; i < dN; i++) { arr[i * 3] += 0.2; if (arr[i * 3] > 400) arr[i * 3] = -400; }
@@ -663,7 +733,7 @@ function initScene(renderer) {
 
     composer.render();
     css3d.render(cssScene, camera);
-    if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); scheduleOutpostLoad(); }
+    if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); scheduleOutpostLoad(); }   // no-op when the intro already kicked the eager load
     requestAnimationFrame(loop);
   }
 
