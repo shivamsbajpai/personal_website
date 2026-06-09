@@ -3,7 +3,7 @@
 // bloom/atmosphere) + scope HUD + the travel<->info optic, driven entirely by
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
 // real content (Slice 3); simple markers stand in for GLTF props (Slice 2).
-import { computeState, buildSegments, MODE } from './state.js';
+import { initState, applyScroll, advanceTravel, cameraFloat, modeOf, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -16,7 +16,7 @@ const mobile = innerWidth < 768;
 /* ---------------- Checkpoints (placeholder content + world anchors) -------- */
 const CHECKPOINTS = [
   {
-    id: 'overwatch', label: '00 · OVERWATCH', travelLen: 0, readLen: 900, anchor: [0, 60],
+    id: 'overwatch', label: '00 · OVERWATCH', anchor: [0, 60], fill: 4,
     html: `<p class="eyebrow">// target acquired — overwatch</p>
       <h1>I build things that work — at scale, and for the love of it.</h1>
       <p>This is the RECON core-loop tracer: travel the Martian desert through the scope,
@@ -24,18 +24,28 @@ const CHECKPOINTS = [
       <p class="scroll-hint">scroll to traverse to the next checkpoint ▾</p>`
   },
   {
-    id: 'alpha', label: '01 · PLACEHOLDER ALPHA', travelLen: 640, readLen: 1200, anchor: [80, -120],
+    id: 'alpha', label: '01 · PLACEHOLDER ALPHA', anchor: [80, -120], fill: 10,
     html: `<h2>Checkpoint Alpha</h2>
       <p>Placeholder intel block standing in for a real section (e.g. Experience). The camera
       flew here across the dunes, locked on, and the desert behind is dimmed and depth-blurred.</p>
-      <p>Scrolling here drives this panel's content while the camera stays pinned. When the
-      content runs out, the pin releases and the optic flies on to the next target.</p>
-      <p>Lorem-grade filler to prove vertical scrolling inside a pinned info panel: the recon
-      optic ranges, the heading updates, dust drifts across a sunlit sector of Ares-09.</p>
-      <p class="scroll-hint">keep scrolling — auto-releases at the end ▾</p>`
+      <p>Scrolling here drives this panel's content while the camera stays pinned. Multiple
+      scrolls just move the text — the camera does <em>not</em> step toward the next checkpoint.</p>
+      <p>Only when the content runs out does one more scroll release the pin and begin a single,
+      slow travel to the next target. A fast flick lands you at the end first, then a separate
+      scroll travels — so you never fly through by accident.</p>
+      <p>Lorem-grade filler to give this panel real scrollable height: the recon optic ranges,
+      the heading updates, dust drifts across a sunlit sector of Ares-09, and the outpost sits
+      dimmed behind this readout.</p>
+      <p>More filler: a deserted tank, crates, sandbags and a comms mast mark the position. The
+      graded pad keeps everything on flat ground so the scene composes cleanly.</p>
+      <p>Still more body text to ensure several wheel notches are absorbed by reading before the
+      end is reached — proving the decoupling of content-scroll from checkpoint travel.</p>
+      <p>Final paragraph of the placeholder. Real content (verbatim Experience / Work / About)
+      is rehomed in a later slice; this is only here to validate the interaction.</p>
+      <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>`
   },
   {
-    id: 'bravo', label: '02 · PLACEHOLDER BRAVO', travelLen: 640, readLen: 1100, anchor: [-80, -360],
+    id: 'bravo', label: '02 · PLACEHOLDER BRAVO', anchor: [-80, -360], fill: 7,
     html: `<h2>Checkpoint Bravo</h2>
       <p>Second placeholder target. Reverse-scrolling from here flies the camera back to Alpha,
       proving the journey is fully reversible.</p>
@@ -51,22 +61,19 @@ CHECKPOINTS.forEach((cp, i) => {
   const panel = document.createElement('section');
   panel.className = 'panel';
   panel.dataset.cp = String(i);
+  let body = cp.html;
+  for (let k = 0; k < (cp.fill || 0); k++) {
+    body += `<p>Recon log ${String(k + 1).padStart(2, '0')}: sector telemetry nominal — wind ${4 + k} kph L→R, optic 12×, dust low. Placeholder filler giving this panel real scrollable height so multiple scrolls are absorbed by reading before the pin releases.</p>`;
+  }
   panel.innerHTML = `
     <div class="panel-head mono">
       <span class="cp">${cp.label}</span>
       <span class="lock">TARGET ACQUIRED</span>
     </div>
-    <div class="panel-body"><div class="panel-scroll">${cp.html}</div></div>`;
+    <div class="panel-body"><div class="panel-scroll">${body}</div></div>`;
   infoLayer.appendChild(panel);
 });
 const panels = [...infoLayer.querySelectorAll('.panel')];
-
-/* ---------------- Scroll budget -> page height ----------------------------- */
-const { total } = buildSegments(CHECKPOINTS);
-const spacer = document.getElementById('spacer');
-function sizeSpacer() { spacer.style.height = (total + window.innerHeight) + 'px'; }
-sizeSpacer();
-addEventListener('resize', sizeSpacer);
 
 /* ---------------- value-noise fbm (module scope: terrain + bump) ----------- */
 const hash = (x, y) => { let h = (x | 0) * 374761393 + (y | 0) * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967295; };
@@ -305,8 +312,41 @@ function initScene(renderer) {
   composer.addPass(bloom);
   composer.setSize(innerWidth, innerHeight);
 
-  /* --- input --- */
-  let mx = 0, my = 0, tmx = 0, tmy = 0, paused = false;
+  /* --- input: wheel / keyboard / touch drive the optic state machine --- */
+  let mx = 0, my = 0, tmx = 0, tmy = 0, paused = false, last = 0;
+  let app = initState();
+  const TRAVEL_MS = reduce ? 1 : 2600;   // slow, single cinematic glide
+  const LERP = reduce ? 1 : 0.2;
+
+  function curContentMax() {
+    const panel = panels[app.cp]; if (!panel) return 0;
+    const body = panel.querySelector('.panel-body'), inner = panel.querySelector('.panel-scroll');
+    return Math.max(0, inner.scrollHeight - body.clientHeight);
+  }
+  const scroll = (d) => { app = applyScroll(app, d, curContentMax(), CHECKPOINTS.length); };
+
+  addEventListener('wheel', (e) => { e.preventDefault(); scroll(e.deltaY); }, { passive: false });
+
+  addEventListener('keydown', (e) => {
+    const body = panels[app.cp]?.querySelector('.panel-body');
+    const page = (body ? body.clientHeight : 600) * 0.8, step = 90;
+    if (e.key === 'Home') { e.preventDefault(); app = { ...app, readScroll: 0 }; return; }
+    if (e.key === 'End') { e.preventDefault(); app = { ...app, readScroll: curContentMax() }; return; }
+    let d = 0;
+    if (e.key === 'ArrowDown') d = step; else if (e.key === 'ArrowUp') d = -step;
+    else if (e.key === ' ' || e.key === 'PageDown') d = page; else if (e.key === 'PageUp') d = -page;
+    else return;
+    e.preventDefault(); scroll(d);
+  });
+
+  let touchY = null;
+  addEventListener('touchstart', (e) => { touchY = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchmove', (e) => {
+    if (touchY == null) return;
+    const y = e.touches[0].clientY; scroll((touchY - y) * 1.5); touchY = y; e.preventDefault();
+  }, { passive: false });
+  addEventListener('touchend', () => { touchY = null; });
+
   if (fine) addEventListener('mousemove', (e) => {
     tmx = (e.clientX / innerWidth - .5) * 2; tmy = (e.clientY / innerHeight - .5) * 2;
     document.documentElement.style.setProperty('--sx', (e.clientX / innerWidth * 100).toFixed(1) + '%');
@@ -320,7 +360,7 @@ function initScene(renderer) {
     camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight);
   });
-  document.addEventListener('visibilitychange', () => { paused = document.hidden; if (!paused) requestAnimationFrame(loop); });
+  document.addEventListener('visibilitychange', () => { paused = document.hidden; last = 0; if (!paused) requestAnimationFrame(loop); });
 
   /* --- HUD + panel refs --- */
   const hudGrid = document.getElementById('hudGrid'), hudRange = document.getElementById('hudRange'),
@@ -329,44 +369,42 @@ function initScene(renderer) {
 
   const camPos = vantages[0].pos.clone(), camLook = vantages[0].look.clone();
   const tPos = new THREE.Vector3(), tLook = new THREE.Vector3();
-  let curFloat = 0, infoAmt = 1, activePanel = -1, booted = false;
+  let infoAmt = 1, activePanel = -1, booted = false;
 
-  function setActivePanel(i, readProgress) {
+  function setActivePanel(i) {
     if (i !== activePanel) { panels.forEach((p, k) => p.classList.toggle('active', k === i)); activePanel = i; }
     const panel = panels[i]; if (!panel) return;
-    const body = panel.querySelector('.panel-body'), inner = panel.querySelector('.panel-scroll');
-    const max = Math.max(0, inner.scrollHeight - body.clientHeight);
-    inner.style.transform = 'translateY(' + (-readProgress * max).toFixed(1) + 'px)';
+    panel.querySelector('.panel-scroll').style.transform = 'translateY(' + (-app.readScroll).toFixed(1) + 'px)';
   }
 
   const sunOffset = sunDir.clone().multiplyScalar(380);
   function loop(t) {
     if (paused) return;
-    const s = computeState(window.scrollY || document.documentElement.scrollTop || 0, CHECKPOINTS);
+    const dt = last ? Math.min(80, t - last) : 16; last = t;
+    app = advanceTravel(app, dt, TRAVEL_MS);
+    if (app.phase === PHASE.READING) { const m = curContentMax(); if (app.readScroll > m) app.readScroll = m; }
 
-    curFloat += (s.cameraFloat - curFloat) * 0.08;
-    vantage(curFloat, tPos, tLook);
+    const cf = cameraFloat(app), md = modeOf(app);
+    vantage(cf, tPos, tLook);
     mx += (tmx - mx) * 0.05; my += (tmy - my) * 0.05;
-    const look = s.mode === MODE.TRAVEL ? 1 : 0;
+    const look = md === MODE.TRAVEL ? 1 : 0;
     tLook.x += mx * 26 * look; tLook.y += -my * 16 * look; tPos.x += mx * 10 * look;
-    camPos.lerp(tPos, 0.15); camLook.lerp(tLook, 0.15);
+    camPos.lerp(tPos, LERP); camLook.lerp(tLook, LERP);
     camera.position.copy(camPos); camera.lookAt(camLook);
 
-    // keep crisp shadows local to the camera
     sun.position.copy(camera.position).add(sunOffset);
     sun.target.position.set(camera.position.x, camera.position.y - 30, camera.position.z - 60);
     sun.target.updateMatrixWorld();
 
-    const targetInfo = s.mode === MODE.INFO ? 1 : 0;
+    const targetInfo = md === MODE.INFO ? 1 : 0;
     infoAmt += (targetInfo - infoAmt) * 0.12;
     document.body.classList.toggle('info', infoAmt > 0.5);
-    if (s.mode === MODE.INFO) setActivePanel(s.activeCheckpoint, s.readProgress);
+    if (md === MODE.INFO) setActivePanel(app.cp);
 
-    const prog = s.total > 0 ? (window.scrollY || 0) / s.total : 0;
-    hudGrid.textContent = pad(prog * 9999, 4);
-    hudRange.textContent = pad(180 + s.cameraFloat * 220, 4) + 'm';
-    hudHdg.textContent = pad(60 + s.cameraFloat * 40, 3) + '°';
-    hudMode.textContent = s.mode === MODE.INFO ? 'TARGET ACQUIRED' : 'TRAVERSING';
+    hudGrid.textContent = pad(3000 + cf * 620, 4);
+    hudRange.textContent = pad(180 + cf * 220, 4) + 'm';
+    hudHdg.textContent = pad(60 + cf * 40, 3) + '°';
+    hudMode.textContent = md === MODE.INFO ? 'TARGET ACQUIRED' : 'TRAVERSING';
 
     const arr = dgeo.attributes.position.array;
     for (let i = 0; i < dN; i++) { arr[i * 3] += 0.2; if (arr[i * 3] > 400) arr[i * 3] = -400; }
@@ -377,7 +415,7 @@ function initScene(renderer) {
 
     composer.render();
     if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); }
-    if (!reduce) requestAnimationFrame(loop);
+    requestAnimationFrame(loop);
   }
 
   if (!fine) {
@@ -386,5 +424,5 @@ function initScene(renderer) {
     const r = document.getElementById('reticle'); if (r) { r.style.left = '50%'; r.style.top = '50%'; }
   }
 
-  if (reduce) loop(0); else requestAnimationFrame(loop);
+  requestAnimationFrame(loop);
 }

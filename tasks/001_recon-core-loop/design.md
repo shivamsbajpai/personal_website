@@ -1,17 +1,20 @@
 # Slice 1 — implementation decisions
 
-- **D1 — Single scroll driver + pure state machine.** Window scroll is the only
-  input. `scene/state.js#computeState(scrollY, checkpoints)` returns
-  `{ mode, activeCheckpoint, cameraFloat, readProgress, released, total }`.
-  Choice: keep it pure (no DOM/Three) so it is unit-testable in isolation.
-  Segments are `read0, travel1, read1, travel2, read2, …`; each checkpoint owns a
-  `travelLen`/`readLen` px budget. Page height = `total + innerHeight` via a
-  spacer div.
+- **D1 — Event-driven pure state machine (revised).** *Superseded the original
+  scroll-position-scrubbed model after feedback that travel felt fast and that
+  reading-scroll was entangled with checkpoint movement.* Native page scroll is
+  disabled (`body` fixed/overflow hidden); the app intercepts wheel/touch/keys.
+  `scene/state.js` is a pure reducer: `applyScroll(state, delta, contentMax,
+  count)` (READING scrolls content, pins at ends, a scroll past an end begins a
+  travel; locked while TRAVELLING) and `advanceTravel(state, dt, durationMs)`
+  (time-based). Two phases: `READING` (INFO) / `TRAVELLING` (TRAVEL). Pure → unit
+  tested in isolation.
 
-- **D2 — `cameraFloat` instead of explicit dock state.** The machine emits a
-  continuous `cameraFloat` (read i → i; travel i → (i-1)+t). `main.js`
-  interpolates camera vantages by it, so travel/dock motion is one smooth lerp.
-  Continuity across the read→travel boundary is asserted in tests.
+- **D2 — `cameraFloat` eased over a timed travel (revised).** Travel is a single
+  time-based animation (`TRAVEL_MS ≈ 2600`, `easeInOut`), NOT scrubbed by scroll —
+  so its speed is controlled and consistent. `cameraFloat(state)` = `cp` while
+  reading, `from + (to-from)*ease(travelT)` while travelling; `main.js`
+  interpolates camera vantages by it.
 
 - **D3 — Info mode via a `body.info` class.** Crossing the 0.5 ramp toggles
   `body.info`, which CSS uses to: fade the scope out, dim+blur the canvas
@@ -24,10 +27,13 @@
   behaviour (face-on, stable) and keeps Slice 1 focused; the CSS3D panel mounted
   on a prop's bezel is Slice 2 work. Content is real DOM (a11y/SEO-ready).
 
-- **D5 — Pinned content scroll via transform.** `readProgress` translates an
-  inner `.panel-scroll` by `-readProgress * (contentH - bodyH)`; window scroll is
-  the driver, the panel never scrolls independently. Running out of content =
-  readProgress 1 = next scroll crosses into travel (auto-release).
+- **D5 — Pinned content scroll, decoupled from travel (revised).** `readScroll`
+  (px) translates an inner `.panel-scroll`; the panel never scrolls natively.
+  Multiple scrolls just move the text. Reaching an end pins there (consuming the
+  gesture); only the NEXT scroll past it starts ONE travel — a fast flick lands at
+  the end first, so you never fly through by accident. The reading viewport is
+  capped (`.panel max-height ≈ 62vh`) so content scrolls meaningfully; short
+  sections (Overwatch) travel after little scroll, long ones absorb many.
 
 - **D6 — Mouse look in travel only.** `main.js` applies a bounded mouse offset to
   the camera look target only when `mode === TRAVEL`; info mode locks face-on.

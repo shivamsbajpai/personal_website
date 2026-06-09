@@ -1,90 +1,73 @@
-// RECON optic — pure interaction state machine.
+// RECON optic — pure interaction state machine (event-driven).
 //
-// Maps a single scroll position onto the scene state. No DOM / WebGL / Three
-// dependencies on purpose: this is the brain of travel<->info, pinning and
-// auto-release, and it is unit-tested in isolation (tests/state.test.js).
+// No DOM / WebGL deps: this is the brain of reading vs travelling, and it is
+// unit-tested in isolation (tests/state.test.js).
 //
-// Scroll budget model
-// -------------------
-// The journey is a flat sequence of segments driven by window scroll:
-//   checkpoint 0:                 [read]            (arrived via the fly-in)
-//   checkpoint i (i > 0):  [travel][read]           (fly to it, then read it)
+// Model
+// -----
+// Two phases:
+//   READING    — docked at a checkpoint; scroll input drives the content panel's
+//                internal scroll (readScroll px), camera is parked. INFO mode.
+//   TRAVELLING — a single time-based eased glide from one checkpoint to the next;
+//                scroll input is LOCKED until arrival. TRAVEL mode.
 //
-//   read   = camera parked at the checkpoint; window scroll drives the
-//            content panel's internal scroll (readProgress 0..1).
-//   travel = camera flies from the previous checkpoint's vantage to this one
-//            (cameraFloat goes (i-1) -> i); mouse look-around is allowed.
-//
-// Scrolling past the end of a read segment crosses into the next travel
-// segment, which is exactly the "scroll past the end auto-releases" behaviour.
-// The function is a pure mapping of scrollY, so reverse-scroll is automatically
-// reversible.
+// A scroll delta while READING scrolls the content. Reaching either end *pins*
+// at that bound (consuming the gesture); the NEXT scroll past that bound starts
+// one travel to the adjacent checkpoint. So a fast flick can't accidentally fly
+// through — you land at the end first, then one more scroll travels. Travel is a
+// single eased animation, not scrubbed, so its speed is controlled by duration.
 
+export const PHASE = { READING: 'READING', TRAVELLING: 'TRAVELLING' };
 export const MODE = { TRAVEL: 'TRAVEL', INFO: 'INFO' };
 
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+export const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
-/**
- * Flatten checkpoints into ordered scroll segments.
- * @param {Array<{id?:string, travelLen:number, readLen:number}>} checkpoints
- * @returns {{segs: Array, total: number}}
- */
-export function buildSegments(checkpoints) {
-  const segs = [];
-  let offset = 0;
-  checkpoints.forEach((cp, i) => {
-    if (i > 0) {
-      const len = Math.max(0, cp.travelLen || 0);
-      segs.push({ type: 'travel', cp: i, start: offset, len });
-      offset += len;
-    }
-    const rlen = Math.max(0, cp.readLen || 0);
-    segs.push({ type: 'read', cp: i, start: offset, len: rlen });
-    offset += rlen;
-  });
-  return { segs, total: offset };
+export function initState() {
+  return { phase: PHASE.READING, cp: 0, readScroll: 0, travelT: 0, from: 0, to: 0 };
 }
 
 /**
- * Compute scene state for a given scroll position.
- * @param {number} scrollY  current window scroll in px
- * @param {Array<{id?:string, travelLen:number, readLen:number}>} checkpoints
- * @returns {{mode:string, activeCheckpoint:number, cameraFloat:number,
- *            readProgress:number, released:boolean, total:number}}
+ * Apply a scroll/wheel/touch delta. While READING, scrolls content; pins at the
+ * ends; a scroll past an end begins a travel. Ignored while TRAVELLING (locked).
+ * @param {object} state
+ * @param {number} delta   px (positive = down/forward)
+ * @param {number} contentMax  max scroll of the current content (px); 0 if it fits
+ * @param {number} count   number of checkpoints
  */
-export function computeState(scrollY, checkpoints) {
-  if (!checkpoints || checkpoints.length === 0) {
-    return { mode: MODE.INFO, activeCheckpoint: 0, cameraFloat: 0, readProgress: 0, released: false, total: 0 };
+export function applyScroll(state, delta, contentMax, count) {
+  if (state.phase === PHASE.TRAVELLING) return state;
+  const ns = clamp(state.readScroll + delta, 0, Math.max(0, contentMax));
+  if (ns !== state.readScroll) return { ...state, readScroll: ns };
+  // already pinned at a bound -> maybe begin one travel
+  if (delta > 0 && state.cp < count - 1) {
+    return { ...state, phase: PHASE.TRAVELLING, travelT: 0, from: state.cp, to: state.cp + 1 };
   }
-  const { segs, total } = buildSegments(checkpoints);
-  const y = clamp(scrollY, 0, total);
-
-  // First segment whose end is beyond y; else the last one (covers y === total).
-  let seg = segs[segs.length - 1];
-  for (let i = 0; i < segs.length; i++) {
-    const s = segs[i];
-    if (y < s.start + s.len) { seg = s; break; }
+  if (delta < 0 && state.cp > 0) {
+    return { ...state, phase: PHASE.TRAVELLING, travelT: 0, from: state.cp, to: state.cp - 1 };
   }
+  return state; // first/last bound: nowhere to go
+}
 
-  const local = seg.len > 0 ? clamp((y - seg.start) / seg.len, 0, 1) : 1;
-
-  if (seg.type === 'read') {
-    return {
-      mode: MODE.INFO,
-      activeCheckpoint: seg.cp,
-      cameraFloat: seg.cp,
-      readProgress: local,
-      released: false,
-      total,
-    };
+/**
+ * Advance an in-progress travel by dt ms over durationMs. On completion, dock at
+ * the target checkpoint at the top of its content.
+ */
+export function advanceTravel(state, dt, durationMs) {
+  if (state.phase !== PHASE.TRAVELLING) return state;
+  const t = state.travelT + dt / Math.max(1, durationMs);
+  if (t >= 1) {
+    return { phase: PHASE.READING, cp: state.to, readScroll: 0, travelT: 0, from: state.to, to: state.to };
   }
-  // travel: approaching seg.cp from the previous checkpoint
-  return {
-    mode: MODE.TRAVEL,
-    activeCheckpoint: seg.cp,
-    cameraFloat: (seg.cp - 1) + local,
-    readProgress: 0,
-    released: true,
-    total,
-  };
+  return { ...state, travelT: t };
+}
+
+/** Continuous camera position along the checkpoint rail (eased during travel). */
+export function cameraFloat(state) {
+  if (state.phase === PHASE.READING) return state.cp;
+  return state.from + (state.to - state.from) * easeInOut(state.travelT);
+}
+
+export function modeOf(state) {
+  return state.phase === PHASE.TRAVELLING ? MODE.TRAVEL : MODE.INFO;
 }
