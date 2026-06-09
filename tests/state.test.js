@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  initState, applyScroll, commitStroke, cameraFloat, modeOf, easeInOut,
+  initState, applyScroll, commitStroke, scrubTravel, cameraFloat, modeOf, easeInOut,
   PHASE, MODE, TRAVEL_STEPS, EDGE_TAPS, SETTLE_TAPS,
 } from '../scene/state.js';
 
@@ -180,6 +180,29 @@ test('short content (max 0): both edges pinned, gate still applies, dir picks th
   }
   s = stroke(s, 100, 0);
   assert.equal(s.phase, PHASE.TRAVELLING); assert.equal(s.to, 1);
+});
+
+test('wheel scrub: px-true travel glide, same arrival/cancel semantics as strokes', () => {
+  const TLEN = 2400;
+  let s = { phase: PHASE.TRAVELLING, cp: 0, readScroll: CMAX, travelT: 1 / 3, from: 0, to: 1, settle: 0, arm: EDGE_TAPS };
+  s = scrubTravel(s, 240, TLEN);                       // every pixel moves the camera
+  assert.ok(Math.abs(s.travelT - (1 / 3 + 0.1)) < 1e-9);
+  assert.equal(scrubTravel(s, 0, TLEN), s, 'no delta, no movement');
+  const back = scrubTravel(s, -240, TLEN);             // reverse scrub
+  assert.ok(Math.abs(back.travelT - 1 / 3) < 1e-9);
+  const arrived = scrubTravel(s, TLEN, TLEN);          // overscroll past 1 -> arrive
+  assert.deepEqual([arrived.phase, arrived.cp, arrived.readScroll, arrived.settle], [PHASE.READING, 1, 0, SETTLE_TAPS]);
+  const cancelled = scrubTravel(s, -TLEN, TLEN);       // back past 0 -> cancel
+  assert.equal(cancelled.cp, 0);
+  assert.ok(cancelled.readScroll > CMAX, 'forward-cancel returns to the END sentinel');
+  assert.equal(cancelled.settle, 0);
+});
+
+test('wheel scrub is inert outside an in-flight scroll travel', () => {
+  const reading = initState();
+  assert.equal(scrubTravel(reading, 500, 2400), reading, 'READING: never starts a travel (gates own that)');
+  const auto = { phase: PHASE.TRAVELLING, cp: 0, readScroll: 0, travelT: 0.5, from: 0, to: 3, auto: true, settle: 0, arm: 1 };
+  assert.equal(scrubTravel(auto, 500, 2400), auto, 'fast-travel ignores scrub (DT1)');
 });
 
 test('contentMax jitter (±2px) neither re-arms nor unpins the edge gate', () => {
