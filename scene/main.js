@@ -651,12 +651,21 @@ function initScene(renderer) {
   // read-only state snapshot for e2e specs / live diagnosis (never mutated through)
   window.__optic = () => ({ ...app });
 
-  let wheelTimer = 0;
+  let wheelTimer = 0, wheelEma = 0;
   addEventListener('wheel', (e) => {
     e.preventDefault();
+    // Trackpad inertia never goes quiet between pushes, so consecutive pushes
+    // merge into one burst and the gates eat several perceived scrolls per
+    // tap. Inertia DECAYS monotonically; a fresh push SPIKES — a delta well
+    // above the running average of an already-committed burst starts a new
+    // stroke, so each deliberate push counts as its own gate tap. Constant
+    // mouse-wheel notches (no spike above ~3x their own level) don't split.
+    const ad = Math.abs(e.deltaY);
+    if (strokeCommitted && ad > Math.max(25, wheelEma * 3)) { strokeEnd(); wheelEma = 0; }
     feed(e.deltaY, true, true);
+    wheelEma = wheelEma ? 0.7 * wheelEma + 0.3 * ad : ad;
     if (strokeCommitted && Math.abs(strokeSum - strokeCommitSum) >= WHEEL_REARM_PX) strokeEnd();
-    clearTimeout(wheelTimer); wheelTimer = setTimeout(strokeEnd, WHEEL_QUIET_MS);
+    clearTimeout(wheelTimer); wheelTimer = setTimeout(() => { strokeEnd(); wheelEma = 0; }, WHEEL_QUIET_MS);
   }, { passive: false });
 
   let lastKeyStroke = 0;
