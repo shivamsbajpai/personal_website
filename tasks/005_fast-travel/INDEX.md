@@ -1,6 +1,6 @@
 # Slice 5 — fast-travel: nav + fire control (⌘K) + keyboard · INDEX (resume protocol)
 
-Task: fast-travel + command palette + keyboard nav · **Closes [#7]** · parent epic [#2]
+Task: fast-travel + command palette + keyboard nav · **Closes [#7]** · parent epic [#2] · **DONE — merged via [PR-18]**, retrospective in [`summary.md`](summary.md)
 Plan: [`plan.md`](plan.md) · Design: [`design.md`](design.md)
 Branch: `task/7-fast-travel` · Preview: server on :8099 → `/v2.html`
 Blocked-by: #3 (DONE); #4/#5/#6 also shipped ([PR-12], [PR-14], [PR-16])
@@ -15,7 +15,7 @@ Blocked-by: #3 (DONE); #4/#5/#6 also shipped ([PR-12], [PR-14], [PR-16])
 | 4 | Keyboard + a11y wiring (DT4) | DONE ✅ | 942d7a8 | ⌘K/Ctrl+K, Esc, wrap arrows, Enter, focus in/restore; intro skips first |
 | 5 | Utility actions (DT5) | DONE ✅ | 942d7a8 | clipboard verified by read-back; HUD toast |
 | 6 | Local verification | DONE ✅ | — | see evidence block; screenshots in [`evidence/`](evidence/) |
-| 7 | PR + owner gate | in_progress | — | merge authorized for this session |
+| 7 | PR + owner gate | DONE ✅ | e298a84 | [PR-18] merged (owner-authorized), #7 auto-closed |
 
 ## Plan defects observed
 
@@ -52,18 +52,12 @@ and usable. **Reduced motion:** palette jump "work" → docks at 02 · WORK
 
 ## Resume sequence for next session
 
-1. `cd ~/projects/personal_website && git checkout task/7-fast-travel`
-2. Pre-flight: `node --test` (34 must pass); server on :8099 (`lsof -iTCP:8099`
-   — a leftover server likely already serves this repo from disk).
-3. Start at the first non-DONE step. Integration points in `scene/main.js`:
-   `scroll()` (~495, has the intro-skip guard), keydown handler (~515),
-   topbar markup in `v2.html` (~176), `loop()` state advance (~615),
-   `endIntro()` (~510 region).
-4. **Gotchas:** editing `scene/state.js` → verify with CDP cache disabled
-   (`Network.enable` BEFORE `Network.setCacheDisabled` — slice-4 defect);
-   bust the page URL (`v2.html?b=N`); live rAF traces for transitional UI;
-   `sessionStorage` persists across Playwright reloads (clear it to re-test
-   first-load); fast-travel during the intro must skip first.
+**TASK COMPLETE — nothing to resume.** [PR-18] merged to `master` (`e298a84`),
+#7 auto-closed, retrospective in [`summary.md`](summary.md). A fresh session
+should move to **Slice 6 ([#8], no-WebGL / reduce-motion static fallback)** —
+start at `tasks/006_<slug>/`. Carry the gotchas from `summary.md` (verify
+palette jumps by typed *name*; fallback nav mirrors land-at-top semantics).
+
 
 ## Carry-forward invariants (Slices 1–4 — do NOT regress)
 
@@ -93,3 +87,4 @@ DT5 clipboard + HUD toast.
 [PR-12]: https://github.com/shivamsbajpai/personal_website/pull/12
 [PR-14]: https://github.com/shivamsbajpai/personal_website/pull/14
 [PR-16]: https://github.com/shivamsbajpai/personal_website/pull/16
+[PR-18]: https://github.com/shivamsbajpai/personal_website/pull/18
