@@ -2,12 +2,14 @@
 // Sunny, more-photoreal 3D Mars desert (shadows + ridged dunes + sand relief +
 // bloom/atmosphere) + scope HUD + the travel<->info optic, driven entirely by
 // the pure state machine in ./state.js. Placeholder checkpoints stand in for
-// real content (Slice 3); simple markers stand in for GLTF props (Slice 2).
+// real content (Slice 3). Outpost props render procedurally on first paint,
+// then lazy-swap to a cloned CC0 GLTF kit once loaded (Slice 2, DS2/DS3).
 import { initState, applyScroll, cameraFloat, modeOf, PHASE, MODE } from './state.js';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = matchMedia('(pointer: fine)').matches;
@@ -293,11 +295,96 @@ function initScene(renderer) {
     const hh = buildHedgehog(); hh.position.set(12, 0.4, 5); hh.rotation.y = hash(seed, 5) * 6.28; g.add(hh);
     return g;
   }
+  // Procedural camps are the first-paint stand-in AND the graceful fallback
+  // (DS2): if the GLTF kit fails to load we keep these, never a blank pad.
+  const proceduralCamps = [];
   anchors.forEach((a, i) => {
     const camp = buildOutpost(i * 37 + 3);
     camp.position.set(a.x, a.y, a.z); camp.scale.setScalar(1.5);
     scene.add(camp);
+    proceduralCamps.push(camp);
   });
+
+  /* --- GLTF outpost kit: lazy-load after first paint, then swap the
+     procedural camps for a cloned CC0 kit (DS2 lazy/graceful, DS3 clone +
+     arc-compose per checkpoint with seeded variation + shadows). The render
+     loop never awaits a model; a failed load leaves the procedural props. --- */
+  const KIT_BASE = 'assets/outpost/';
+  // name → normalize target (local units, pre 1.5× placement scale).
+  // axis 'y' fits height (the comms mast); otherwise fit the max(x,z) footprint.
+  const KIT = {
+    tank:              { target: 9.0, axis: 'max' },
+    crate:             { target: 1.7, axis: 'max' },
+    'crate-pickup':    { target: 2.0, axis: 'max' },
+    'sandbags-trench': { target: 8.0, axis: 'max' },
+    'sandbags-small':  { target: 3.4, axis: 'max' },
+    antenna:           { target: 10.0, axis: 'y' },
+    'barrier-large':   { target: 4.4, axis: 'max' },
+    'barrier-fixed':   { target: 3.8, axis: 'max' },
+  };
+
+  // Normalize a loaded model to a target size, recenter on x/z, and drop it so
+  // its base sits on the pad (min.y → 0); enable shadows (D10) on every mesh.
+  function prepModel(obj, spec) {
+    obj.updateMatrixWorld(true);
+    let box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const denom = spec.axis === 'y' ? size.y : Math.max(size.x, size.z);
+    if (denom > 1e-4) obj.scale.multiplyScalar(spec.target / denom);
+    obj.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(obj);
+    const c = box.getCenter(new THREE.Vector3());
+    obj.position.x -= c.x; obj.position.z -= c.z; obj.position.y -= box.min.y;
+    obj.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+    return obj;
+  }
+
+  // One camp from the loaded kit, mirroring buildOutpost()'s camera-facing arc
+  // (+z = toward camera). Per-checkpoint variation is seeded via hash (no
+  // Math.random — reproducible, DS3).
+  function buildGltfOutpost(kit, seed) {
+    const g = new THREE.Group();
+    const place = (name, x, z, yaw) => {
+      const m = kit[name].clone();
+      m.position.x += x; m.position.z += z; m.rotation.y += yaw;
+      g.add(m);
+    };
+    place('tank', -7, -2, 0.5 + hash(seed, 1));
+    place('crate', 9, -3, hash(seed, 3) * 6.28);
+    place('crate-pickup', 10.8, -2.0, hash(seed, 6) * 6.28);
+    place('sandbags-trench', 2, 6, (hash(seed, 2) - 0.5) * 0.6);
+    place('sandbags-small', 5.4, 6.6, hash(seed, 7) * 6.28);
+    place('antenna', -11, -11, hash(seed, 4) * 6.28);
+    place('barrier-large', 12, 5, hash(seed, 5) * 6.28);
+    place('barrier-fixed', 9.4, 7.6, hash(seed, 8) * 6.28);
+    return g;
+  }
+
+  let outpostLoadStarted = false;
+  function scheduleOutpostLoad() {
+    if (outpostLoadStarted) return; outpostLoadStarted = true;
+    const ric = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+    ric(() => loadOutposts(), { timeout: 2000 });
+  }
+
+  async function loadOutposts() {
+    try {
+      const loader = new GLTFLoader();
+      const names = Object.keys(KIT);
+      const loaded = await Promise.all(names.map((n) =>
+        loader.loadAsync(KIT_BASE + n + '.glb').then((gltf) => [n, prepModel(gltf.scene, KIT[n])])));
+      const kit = Object.fromEntries(loaded);
+      anchors.forEach((a, i) => {
+        const camp = buildGltfOutpost(kit, i * 37 + 3);
+        camp.position.set(a.x, a.y, a.z); camp.scale.setScalar(1.5);
+        scene.add(camp);
+        const old = proceduralCamps[i];
+        if (old) { scene.remove(old); old.traverse((n) => { if (n.isMesh) n.geometry.dispose(); }); }
+      });
+    } catch (e) {
+      console.warn('GLTF outpost kit failed to load; keeping procedural props', e);
+    }
+  }
 
   /* --- camera vantages --- */
   const vantages = anchors.map((a) => ({
@@ -451,7 +538,7 @@ function initScene(renderer) {
     markers.forEach((m) => { m.beam.material.opacity = beamOp; });
 
     composer.render();
-    if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); }
+    if (!booted) { booted = true; canvas.classList.add('ready'); document.getElementById('init').classList.add('done'); scheduleOutpostLoad(); }
     requestAnimationFrame(loop);
   }
 
