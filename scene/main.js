@@ -386,10 +386,21 @@ function initScene(renderer) {
 
     const cf = cameraFloat(app), md = modeOf(app);
     vantage(cf, tPos, tLook);
+    // While travelling, ride up and over the dunes instead of cutting a straight
+    // chord through them: clamp the camera (and look target) to clear the terrain
+    // it is currently passing over. At checkpoints the vantage already sits above
+    // the flat pad, so this is a no-op there.
+    if (md === MODE.TRAVEL) {
+      const gy = terrainH(tPos.x, tPos.z) + 16;
+      if (tPos.y < gy) tPos.y = gy;
+      const ly = terrainH(tLook.x, tLook.z) + 4;
+      if (tLook.y < ly) tLook.y = ly;
+    }
     mx += (tmx - mx) * 0.05; my += (tmy - my) * 0.05;
     const look = md === MODE.TRAVEL ? 1 : 0;
     tLook.x += mx * 26 * look; tLook.y += -my * 16 * look; tPos.x += mx * 10 * look;
     camPos.lerp(tPos, LERP); camLook.lerp(tLook, LERP);
+    if (md === MODE.TRAVEL) { const g = terrainH(camPos.x, camPos.z) + 10; if (camPos.y < g) camPos.y = g; } // never clip through a dune
     camera.position.copy(camPos); camera.lookAt(camLook);
 
     sun.position.copy(camera.position).add(sunOffset);
