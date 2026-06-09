@@ -668,16 +668,28 @@ function initScene(renderer) {
     else { strokeSum = 0; strokeStartRs = null; strokeCommitted = false; strokeCommitSum = 0; }   // repeat too fast: live delta only, no stroke
   });
 
-  let touchY = null;
+  let touchY = null, touchT = 0, flickV = 0;
   addEventListener('touchstart', (e) => {
     clearTimeout(wheelTimer); strokeEnd();      // flush any pending wheel burst
-    touchY = e.touches[0].clientY;
+    touchY = e.touches[0].clientY; touchT = performance.now(); flickV = 0;
+    coastV = 0;                                 // a finger down catches a running coast, like native scrolling
   }, { passive: true });
   addEventListener('touchmove', (e) => {
     if (touchY == null) return;
-    const y = e.touches[0].clientY; feed((touchY - y) * 1.5); touchY = y; e.preventDefault();
+    const y = e.touches[0].clientY, now = performance.now();
+    const d = (touchY - y) * 1.5;
+    flickV = 0.75 * flickV + 0.25 * (d / Math.max(1, now - touchT));   // smoothed px/ms for the release flick
+    feed(d); touchY = y; touchT = now; e.preventDefault();
   }, { passive: false });
-  addEventListener('touchend', () => { touchY = null; strokeEnd(); });
+  addEventListener('touchend', () => {
+    // release a moving reading stroke into an inertial coast (the glide block
+    // in loop() feeds it through applyScroll, so pins/settle still clamp it).
+    // Slow deliberate drags (low velocity) stop where the finger stopped.
+    const flick = app.phase === PHASE.READING && strokeMoved() && !reduce && Math.abs(flickV) > 0.25;
+    touchY = null; strokeEnd();
+    coastV = flick ? Math.max(-4, Math.min(4, flickV)) : 0;
+    flickV = 0;
+  });
 
   /* --- Slice 5: fast-travel — nav strip + FIRE CONTROL palette (DT1–DT5) --- */
   const fcEl = document.getElementById('fc'), fcInput = document.getElementById('fcInput'),
@@ -792,11 +804,19 @@ function initScene(renderer) {
   // infoAmt boots at 0 when the fly-in will play (the panel/dim must not flash
   // before the sweep); otherwise 1, docked on Overwatch as before.
   let infoAmt = intro.active ? 0 : 1, activePanel = -1, booted = false, renderFloat = 0;
+  // Reading glide: app.readScroll is the TARGET the strokes/coast set; the
+  // panel renders renderScroll, low-passed toward it each frame. glideCp
+  // detects dock changes (snap, never glide across panels); coastV is the
+  // touch-flick inertia in px/ms, decayed exponentially like native scrolling.
+  let renderScroll = 0, glideCp = 0, coastV = 0;
 
   function setActivePanel(i) {
     if (i !== activePanel) { panels.forEach((p, k) => p.classList.toggle('active', k === i)); activePanel = i; }
     const panel = panels[i]; if (!panel) return;
-    panel.querySelector('.panel-scroll').style.transform = 'translateY(' + (-app.readScroll).toFixed(1) + 'px)';
+    // renderScroll, not app.readScroll: the panel glides toward the target the
+    // strokes set (see the reading-glide block in loop()), instead of jumping
+    // a wheel-notch/swipe chunk per event and stopping dead.
+    panel.querySelector('.panel-scroll').style.transform = 'translateY(' + (-renderScroll).toFixed(1) + 'px)';
   }
 
   const sunOffset = sunDir.clone().multiplyScalar(380);
@@ -805,6 +825,18 @@ function initScene(renderer) {
     if (paused) return;
     const dtMs = lastT ? Math.min(120, (t || 0) - lastT) : 16; lastT = t || 0;
     if (app.phase === PHASE.READING) { const m = curContentMax(); if (app.readScroll > m) app.readScroll = m; }
+    /* --- reading glide: coast the flick, ease the panel toward the target --- */
+    if (app.phase === PHASE.READING && !app.auto) {
+      if (coastV) {
+        const before = app.readScroll;
+        app = applyScroll(app, coastV * dtMs, curContentMax());
+        if (app.readScroll === before) coastV = 0;            // hit a pin (or settling): stop dead, no overscroll
+        else { coastV *= Math.exp(-dtMs / 325); if (Math.abs(coastV) < 0.02) coastV = 0; }   // iOS-like decel curve
+      }
+      if (app.cp !== glideCp) { glideCp = app.cp; renderScroll = app.readScroll; }   // fresh dock: snap
+      renderScroll += (app.readScroll - renderScroll) * (reduce ? 0.5 : 0.3);
+      if (Math.abs(renderScroll - app.readScroll) < 0.3) renderScroll = app.readScroll;
+    } else coastV = 0;
     // Fast-travel: time-tick the auto leg; on arrival activate the panel
     // synchronously so its contentMax is measurable (same rule as scroll()).
     if (app.auto) {
