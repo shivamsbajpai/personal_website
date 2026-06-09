@@ -313,14 +313,14 @@ function initScene(renderer) {
   // name → normalize target (local units, pre 1.5× placement scale).
   // axis 'y' fits height (the comms mast); otherwise fit the max(x,z) footprint.
   const KIT = {
-    tank:              { target: 9.0, axis: 'max' },
-    crate:             { target: 1.7, axis: 'max' },
-    'crate-pickup':    { target: 2.0, axis: 'max' },
-    'sandbags-trench': { target: 8.0, axis: 'max' },
-    'sandbags-small':  { target: 3.4, axis: 'max' },
-    antenna:           { target: 10.0, axis: 'y' },
-    'barrier-large':   { target: 4.4, axis: 'max' },
-    'barrier-fixed':   { target: 3.8, axis: 'max' },
+    tank:              { target: 7.6, axis: 'max' },
+    crate:             { target: 1.4, axis: 'max' },
+    'crate-pickup':    { target: 1.7, axis: 'max' },
+    'sandbags-trench': { target: 6.0, axis: 'max' },
+    'sandbags-small':  { target: 2.8, axis: 'max' },
+    antenna:           { target: 5.0, axis: 'y' },
+    'barrier-large':   { target: 3.6, axis: 'max' },
+    'barrier-fixed':   { target: 3.0, axis: 'max' },
   };
 
   // Normalize a loaded model to a target size, recenter on x/z, and drop it so
@@ -342,6 +342,9 @@ function initScene(renderer) {
   // One camp from the loaded kit, mirroring buildOutpost()'s camera-facing arc
   // (+z = toward camera). Per-checkpoint variation is seeded via hash (no
   // Math.random — reproducible, DS3).
+  // +z is toward the camera/vantage: tall backdrop props sit at the back (−z),
+  // low props (sandbags/barriers) flank the front (+z) so the cluster composes
+  // within the docked lens cone instead of one prop blocking centre.
   function buildGltfOutpost(kit, seed) {
     const g = new THREE.Group();
     const place = (name, x, z, yaw) => {
@@ -349,14 +352,14 @@ function initScene(renderer) {
       m.position.x += x; m.position.z += z; m.rotation.y += yaw;
       g.add(m);
     };
-    place('tank', -7, -2, 0.5 + hash(seed, 1));
-    place('crate', 9, -3, hash(seed, 3) * 6.28);
-    place('crate-pickup', 10.8, -2.0, hash(seed, 6) * 6.28);
-    place('sandbags-trench', 2, 6, (hash(seed, 2) - 0.5) * 0.6);
-    place('sandbags-small', 5.4, 6.6, hash(seed, 7) * 6.28);
-    place('antenna', -11, -11, hash(seed, 4) * 6.28);
-    place('barrier-large', 12, 5, hash(seed, 5) * 6.28);
-    place('barrier-fixed', 9.4, 7.6, hash(seed, 8) * 6.28);
+    place('tank', -2, 3, 0.5 + hash(seed, 1));             // hero, near centre on the open pad
+    place('antenna', -14, -11, hash(seed, 4) * 6.28);      // shorter comms mast, back-left backdrop
+    place('crate', 7, 2, hash(seed, 3) * 6.28);            // right, mid
+    place('crate-pickup', 9.5, 4.5, hash(seed, 6) * 6.28);
+    place('barrier-large', 11, 7, hash(seed, 5) * 6.28);   // right flank, front
+    place('barrier-fixed', 8, 9.5, hash(seed, 8) * 6.28);
+    place('sandbags-trench', -3, 9, (hash(seed, 2) - 0.5) * 0.6); // low front
+    place('sandbags-small', 3, 10.5, hash(seed, 7) * 6.28);
     return g;
   }
 
