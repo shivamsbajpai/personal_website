@@ -14,6 +14,10 @@
 // Reaching the end of the content pins there; the next scroll past it begins a
 // travel. Scrolling forward scrubs toward the next checkpoint; scrolling back
 // reverses — past 1 you arrive, back past 0 you cancel to where you came from.
+//
+// Arrival lands at the content edge you are moving INTO (forward -> top, read
+// down; backward -> end, read up), so a checkpoint is always read in full
+// before its pin releases regardless of travel direction.
 
 export const PHASE = { READING: 'READING', TRAVELLING: 'TRAVELLING' };
 export const MODE = { TRAVEL: 'TRAVEL', INFO: 'INFO' };
@@ -45,7 +49,17 @@ export function applyScroll(state, delta, contentMax, count, travelLen) {
   // TRAVELLING — scrub camera along the path (scroll-driven, not timed)
   const forward = state.to > state.from;
   const t = state.travelT + (forward ? delta : -delta) / Math.max(1, travelLen);
-  if (t >= 1) return { phase: PHASE.READING, cp: state.to, readScroll: 0, travelT: 0, from: state.to, to: state.to };
+  if (t >= 1) {
+    // Arrive. Land at the edge the reader is moving INTO so the panel is read
+    // in full before the pin releases: forward -> top (read down); backward ->
+    // end (read up). The backward sentinel is clamped to the destination's
+    // contentMax by the caller (same pattern as the forward-cancel below).
+    // Without this, backward arrival at readScroll:0 IS the reverse-travel
+    // bound, so one more up-scroll immediately leaves and the checkpoint is
+    // flown through with no reading dwell (content never shows).
+    const land = forward ? 0 : Number.MAX_SAFE_INTEGER;
+    return { phase: PHASE.READING, cp: state.to, readScroll: land, travelT: 0, from: state.to, to: state.to };
+  }
   if (t <= 0) {
     // cancelled back to origin: forward-cancel returns to the end of that content
     const back = forward ? Number.MAX_SAFE_INTEGER : 0;

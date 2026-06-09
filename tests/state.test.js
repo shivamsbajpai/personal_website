@@ -76,6 +76,39 @@ test('reverse travel: scrolling up at the top goes back a checkpoint', () => {
   assert.equal(s.cp, 0);
 });
 
+test('backward arrival lands at the END of the content (read up), not the top', () => {
+  // scrubbing a reverse travel past its end arrives at the destination with
+  // readScroll at the end sentinel (caller clamps to that panel's contentMax),
+  // so the panel is read up through before the pin releases.
+  let s = { phase: PHASE.TRAVELLING, cp: 2, readScroll: 0, travelT: 0.9, from: 2, to: 1 };
+  s = scroll(s, -200);                // -(-200)/1000 -> +0.2 -> >=1, arrive cp1
+  assert.equal(s.phase, PHASE.READING);
+  assert.equal(s.cp, 1);
+  assert.ok(s.readScroll > CMAX);     // end-of-content sentinel, NOT 0
+});
+
+test('reversing through a middle checkpoint does NOT fly through it', () => {
+  // Regression: travel to last cp, reverse. Arriving at the middle cp must
+  // require reading its full content (end -> top) before the next up-scroll
+  // can release the pin and continue back — otherwise the checkpoint is
+  // skipped with no reading dwell and its content never shows.
+  let s = { phase: PHASE.TRAVELLING, cp: 2, readScroll: 0, travelT: 0.9, from: 2, to: 1 };
+  s = scroll(s, -200);                          // reverse arrival into cp1
+  s.readScroll = Math.min(s.readScroll, CMAX);  // caller clamps the sentinel
+  assert.equal(s.cp, 1);
+  assert.equal(s.readScroll, CMAX);             // parked at the END of cp1
+  // the NEXT up-scroll must READ (readScroll decreases), not leave cp1
+  s = scroll(s, -200);
+  assert.equal(s.phase, PHASE.READING, 'still reading cp1, did not fly through');
+  assert.equal(s.cp, 1);
+  assert.equal(s.readScroll, CMAX - 200);
+  // only after reading all the way up does a further up-scroll release the pin
+  s = scroll(s, -CMAX);                         // to the top
+  s = scroll(s, -50);                           // one more -> travel back to cp0
+  assert.equal(s.phase, PHASE.TRAVELLING);
+  assert.equal(s.from, 1); assert.equal(s.to, 0);
+});
+
 test('cannot travel before the first or past the last checkpoint', () => {
   let first = initState();
   first = scroll(first, -300);

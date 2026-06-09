@@ -39,6 +39,23 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
 
 ## Plan defects observed
 
+- **Reverse travel flew through the middle checkpoint (content never shown).**
+  Owner repro: travel to the last checkpoint, then reverse — the 2nd
+  (middle) checkpoint showed no content. Cause: backward arrival landed at
+  `readScroll:0` (the panel top), but `readScroll:0` is also the reverse-travel
+  pin bound, so the very next up-scroll immediately began `TRAVELLING from N to
+  N-1` with no reading dwell. Travel was direction-asymmetric: forward arrives
+  at the top and reads *down* through the panel before the pin releases;
+  backward arrived at the top and left instantly. Fix (`scene/state.js`): on
+  arrival land at the edge being moved *into* — forward → top (`0`), backward →
+  end (`Number.MAX_SAFE_INTEGER` sentinel, clamped to the destination's
+  `contentMax` by the caller, mirroring the existing forward-cancel path). Now
+  backward arrival parks at the content end and reads *up* before releasing.
+  Tests: +2 regression cases (13/13 pass). Verified in-browser (Playwright):
+  on reverse, panel 1 shows in INFO mode, content scrolls end→top, 0 console
+  errors.
+
+
 - **Checkpoint skipped because the panel wasn't measurable on arrival.** With
   scroll-driven travel, arriving at a checkpoint left the content panel
   `display:none` for the few frames the info-fade ramped up, so `curContentMax()`
