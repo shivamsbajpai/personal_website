@@ -39,10 +39,13 @@ AC-6 → 3,5 (full AC text in [#23])
 master's `/v2.html` staging page for the owner's real-phone feel test —
 `scene/` + unit suites byte-identical to this branch, plus v2-side hint
 copy/nudge CSS and a `?v=` import bust. Live-verified on
-shivambajpai.com/v2.html (~40s after merge). **Gotchas hit:** the merge
-auto-closed [#23] despite refs-only keywords (reopened with comment —
-the known close-linked-issues footgun), and when cutover [PR-22] merges,
-`v2.html` will conflict with this preview (resolve by taking the redirect).
+shivambajpai.com/v2.html (~40s after merge). [PR-26] (`task/23-v2-preview-2`,
+MERGED 2026-06-10 by the owner) followed up with the 1-tap gate tuning after
+the phone feel-test — live-verified (`EDGE_TAPS = 1` served on first poll).
+**Gotchas hit:** BOTH preview merges auto-closed [#23] despite refs-only
+keywords (reopened each time — the known close-linked-issues footgun), and
+when cutover [PR-22] merges, `v2.html` will conflict with this preview
+(resolve by taking the redirect).
 
 ## Plan defects observed
 
@@ -87,3 +90,4 @@ the known close-linked-issues footgun), and when cutover [PR-22] merges,
 [PR-22]: https://github.com/shivamsbajpai/personal_website/pull/22
 
 [PR-24]: https://github.com/shivamsbajpai/personal_website/pull/24
+[PR-26]: https://github.com/shivamsbajpai/personal_website/pull/26
