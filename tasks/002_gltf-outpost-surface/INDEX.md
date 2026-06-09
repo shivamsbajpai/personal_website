@@ -10,8 +10,8 @@ Blocked-by: #3 (DONE — merged via PR #10)
 | # | Step | State | Commit | Notes |
 |---|------|-------|--------|-------|
 | 1 | Asset sourcing + license vetting (DS1) | DONE ✅ | 93930ff | owner chose Poly Pizza assembly; 8 Quaternius CC0 GLBs in `assets/outpost/`, all verified Public Domain (CC0), provenance in `assets/CREDITS.md` |
-| 2 | GLTFLoader + lazy-load harness (DS2) | pending | — | load after first paint; swap procedural→GLTF on load |
-| 3 | Per-checkpoint outpost composition (DS3) | pending | — | clone kit per pad, camera-facing arc, shadows |
+| 2 | GLTFLoader + lazy-load harness (DS2) | DONE ✅ | 83928e7 | `GLTFLoader` kicked on `booted` via `requestIdleCallback`; render loop never awaits; normalize→recenter→min.y=0→shadows per model; graceful catch keeps procedural |
+| 3 | Per-checkpoint outpost composition (DS3) | DONE ✅ | 83928e7 | `buildGltfOutpost()` clones kit into camera-facing arc, `hash`-seeded per-cp yaw, shadows on every mesh; procedural camps removed + geo disposed on swap |
 | 4 | WebGL holo-screen on a prop (DS4) | pending | — | scanline/flicker ShaderMaterial, visible in TRAVEL |
 | 5 | CSS3D crisp panel + cross-fade (DS5) | pending | — | upgrades D4; preserve Slice 1 invariants |
 | 6 | Reduced-motion path (DS6) | pending | — | static holo, dampened, travel preserved |
@@ -30,27 +30,30 @@ Blocked-by: #3 (DONE — merged via PR #10)
 
 1. `cd ~/projects/personal_website && git checkout task/4-gltf-outpost-surface`
 2. Pre-flight: `node --test` (expect 13 pass); `python3 -m http.server 8099` → `/v2.html`.
-3. **Step 1 DONE** — 8 Quaternius CC0 GLBs in `assets/outpost/` (`tank`,
-   `sandbags-trench`, `sandbags-small`, `crate`, `crate-pickup`, `antenna`,
-   `barrier-large`, `barrier-fixed`), licenses in `assets/CREDITS.md`.
-4. **Next = Step 2 (GLTFLoader + lazy-load swap).** Plan, ready to implement:
-   - Import `GLTFLoader` from `three/addons/loaders/GLTFLoader.js` (import map
-     already maps `three/addons/`).
-   - Keep the procedural `buildOutpost()` (`scene/main.js:287`) as the first-paint
-     stand-in **and** graceful fallback (DS2: never block the loop; failed load →
-     keep procedural, never a blank pad).
-   - After first paint (post-`booted`/`requestIdleCallback`), load the 8 GLBs.
-     For each: compute bounding box, **normalize** to a target size, recenter so
-     `min.y → 0` (sits on the pad), set `castShadow`/`receiveShadow` on every mesh.
-   - Build a GLTF outpost group mirroring the arc layout in `buildOutpost`
-     (tank −7,−2 · crates +9,−3 · sandbags +2,+6 · antenna −11,−11 · barrier
-     +12,+5), seeded per-cp variation (use `hash`, no `Math.random`). Swap:
-     remove procedural `camp` groups, add GLTF ones at the same anchors (scale ~1.5).
-   - Verify in browser: 0 console errors, desert usable before models finish,
-     8 models load + compose, shadows + sunny look preserved.
-5. Then steps 3→8. Holo (DS4) + CSS3D panel (DS5) are a **distinct sub-system** —
-   tackle after the outpost swap is verified. Keep the Slice 1 invariants intact
+3. **Steps 1–3 DONE** — kit sourced (`assets/outpost/`), lazy-loaded + swapped,
+   composed per-checkpoint. GLTF code lives in `scene/main.js`: `KIT` spec +
+   `prepModel()` + `buildGltfOutpost()` + `scheduleOutpostLoad()`/`loadOutposts()`,
+   kicked from the `booted` flip inside `loop()`.
+4. **Next = Step 4 (WebGL holo-screen, DS4).** Distinct sub-system — start here:
+   - Add an emissive `ShaderMaterial` screen quad on a designated prop (the
+     `antenna` comms unit, or add a small field-terminal prop). Horizontal
+     scanlines (`fract(uv.y*N)`), subtle flicker + sweep driven by a `uTime`
+     uniform, recon-cyan tint (`--phosphor` #7cfca6). Reuse the existing bloom
+     pass (D10) for glow.
+   - Drive its opacity by `1 - infoAmt` so it fades out as INFO ramps (it's a
+     TRAVEL-mode element). Advance `uTime` in `loop()`.
+   - **Reduced-motion (DS6, do alongside):** freeze `uTime` → static glow, no
+     flicker/sweep. `reduce` is already computed at module top.
+5. Then Step 5 (CSS3DRenderer crisp panel + cross-fade, DS5 — upgrades D4), Step
+   6 (reduced-motion path finalize), Step 7 (verify: `node --test` + Playwright
+   smoke), Step 8 (owner approval gate). Keep Slice 1 invariants intact
    (see "Carry-forward invariants").
+
+**Step 2/3 verification evidence (this session):** `node --test` → 13 pass;
+Playwright smoke on `/v2.html` → 0 console errors/warnings, all 8 GLBs `200`,
+scene-graph probe confirmed exactly **3 camp groups** with GLTF geometry
+(procedural removed), antenna dish + tank render with contact shadows in
+TRAVEL mode.
 
 ## Plan defects observed
 
