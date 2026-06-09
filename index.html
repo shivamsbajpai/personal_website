@@ -189,23 +189,9 @@
   .hero h1 .line2 { display: block; }
   .hero-bio {
     font-size: clamp(17px, 2.2vw, 20px); font-weight: 400; line-height: 1.6;
-    color: var(--text-2); max-width: 640px; letter-spacing: -0.18px; margin-bottom: 22px;
+    color: var(--text-2); max-width: 640px; letter-spacing: -0.18px; margin-bottom: 36px;
   }
   .hero-bio strong { color: var(--text); font-weight: 600; }
-
-  .clouds { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
-  .cloud-pill {
-    font-size: 12.5px; font-weight: 560; letter-spacing: .2px;
-    padding: 6px 13px 6px 11px; border-radius: 9999px;
-    border: 1px solid var(--border); background: var(--card);
-    display: inline-flex; align-items: center; gap: 7px; color: var(--text-2);
-  }
-  .cloud-pill::before { content:''; width: 7px; height: 7px; border-radius: 2px; }
-  .cloud-pill.aws::before { background: #ff9900; }
-  .cloud-pill.gcp::before { background: #4285f4; }
-  .cloud-pill.azure::before { background: #2ec5ff; }
-  .cloud-pill.regions { border-color: rgba(113,112,255,.35); color: var(--violet); }
-  .cloud-pill.regions::before { background: var(--violet); }
 
   .hero-links { display: flex; gap: 11px; flex-wrap: wrap; align-items: center; }
   .btn {
@@ -429,19 +415,13 @@
 <div class="wrap" id="main">
   <header class="hero">
     <span class="eyebrow mono"><span class="pulse"></span>backend &amp; platform engineer · full-stack builder</span>
-    <h1 class="display">I build things that <span class="gradient-text">work</span><span class="line2">— at scale, and on the side.</span></h1>
+    <h1 class="display">I build things that <span class="gradient-text">work</span><span class="line2">— at scale, and for the love of it.</span></h1>
     <p class="hero-bio">
       I ship production <strong>backend and platform systems</strong> for enterprise SaaS —
       multi-cloud infrastructure, identity, and security that run across AWS, GCP, and
       Azure in 10+ regions. Off the clock, I build whatever a problem needs:
       <strong>AI-agent infrastructure</strong>, Android and iOS apps, CLIs, and ML pipelines.
     </p>
-    <div class="clouds">
-      <span class="cloud-pill aws">AWS</span>
-      <span class="cloud-pill gcp">GCP</span>
-      <span class="cloud-pill azure">Azure</span>
-      <span class="cloud-pill regions">10+ regions</span>
-    </div>
     <div class="hero-links">
       <a class="btn btn-primary" href="#work">View work</a>
       <a class="btn btn-ghost" href="https://github.com/shivamsbajpai" target="_blank" rel="noopener">GitHub</a>
