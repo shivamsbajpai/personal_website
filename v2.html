@@ -114,6 +114,71 @@
   .scroll-hint{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-4);
     margin-top:6px; }
 
+  /* ===== Rehomed content structures (Slice 3) — recon-themed chrome around
+     verbatim copy. Everything scoped under .panel-body. ===== */
+  .panel-body a { color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(255,178,74,.3); }
+  .panel-body strong { color: var(--text); font-weight: 600; }
+  .panel-body .gradient-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .panel-body h1 .line2 { display: block; }
+  .panel-body .links-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; margin: 4px 0 18px; }
+  .panel-body .links-row a { border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; }
+  .panel-body .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 6px 0 14px; }
+  @media (max-width: 560px){ .panel-body .stats { grid-template-columns: repeat(2, 1fr); } }
+  .panel-body .stat { border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px 12px; }
+  .panel-body .stat .num { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; color: var(--amber); }
+  .panel-body .stat .lbl { font-size: 10px; color: var(--text-4); letter-spacing: .4px; margin-top: 2px; }
+  .panel-body .section-sub { color: var(--text-3); font-size: 14px; }
+  .panel-body .featured, .panel-body .exp { border: 1px solid var(--border-subtle); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 14px; }
+  .panel-body .featured { border-color: var(--border); }
+  .panel-body .featured-top, .panel-body .exp-header { display: flex; flex-wrap: wrap; align-items: baseline;
+    gap: 6px 14px; font-size: 12px; margin-bottom: 6px; }
+  .panel-body .featured-role, .panel-body .exp-role { color: var(--text); font-weight: 600; font-size: 14px; }
+  .panel-body .featured-co a, .panel-body .exp-company { color: var(--amber); }
+  .panel-body .featured-period, .panel-body .exp-period { margin-left: auto; color: var(--text-4); font-size: 11px; }
+  .panel-body .featured-meta, .panel-body .exp-meta { font-size: 11px; color: var(--text-4); margin-bottom: 12px; }
+  .panel-body .featured-lead { font-size: 14.5px; }
+  .panel-body .systems { display: grid; gap: 10px; margin-bottom: 12px; }
+  .panel-body .sys { border-left: 2px solid rgba(255,178,74,.35); padding-left: 12px; }
+  .panel-body .sys-name { color: var(--text); font-weight: 600; font-size: 13.5px; margin-bottom: 3px; }
+  .panel-body .chip, .panel-body .tag { display: inline-block; font-size: 10px; letter-spacing: .4px;
+    color: var(--phosphor); border: 1px solid rgba(124,252,166,.35); border-radius: 5px;
+    padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
+  .panel-body .sys-desc { font-size: 13.5px; line-height: 1.55; color: var(--text-3); margin-bottom: 0; }
+  .panel-body .featured-foot { font-size: 13.5px; color: var(--text-3); margin-bottom: 0; }
+  .panel-body .exp-list { margin: 0 0 2px 18px; }
+  .panel-body .exp-list li { font-size: 13.5px; line-height: 1.6; color: var(--text-2); margin-bottom: 4px; }
+  .panel-body .group-label { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--amber); margin: 18px 0 10px; }
+  .panel-body .project { border: 1px solid var(--border-subtle); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 12px; }
+  .panel-body .project-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 8px; }
+  .panel-body .project-name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15.5px; color: var(--text); }
+  .panel-body .project-tags { margin-left: auto; }
+  .panel-body .project-tags .tag { margin-left: 4px; }
+  .panel-body .project-desc { font-size: 13.5px; line-height: 1.6; color: var(--text-2); margin-bottom: 6px; }
+  .panel-body .project-links { font-size: 11.5px; margin-bottom: 0; }
+  .panel-body .project-links a { margin-right: 14px; }
+  .panel-body .stack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  @media (max-width: 560px){ .panel-body .stack-grid { grid-template-columns: 1fr; } }
+  .panel-body .stack-item { border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px 14px; }
+  .panel-body .stack-item h4 { font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--amber); margin-bottom: 6px; }
+  .panel-body .stack-item p { font-size: 12.5px; line-height: 1.6; color: var(--text-3); margin-bottom: 0; }
+  .panel-body .tvash-block { border: 1px solid rgba(124,252,166,.25); border-radius: 12px;
+    padding: 14px 16px; margin-top: 4px; }
+  .panel-body .tvash-block h3 { font-family: 'Space Grotesk', sans-serif; font-size: 16px;
+    color: var(--phosphor); margin-bottom: 8px; }
+  .panel-body .tvash-block p { font-size: 13.5px; margin-bottom: 0; }
+  .panel-body .comms-links { display: grid; gap: 10px; margin: 8px 0 18px; }
+  .panel-body .comms-link { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
+    border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px;
+    color: var(--text); font-size: 14.5px; font-weight: 600; }
+  .panel-body .comms-link .k { color: var(--text-4); font-size: 10.5px; letter-spacing: 1px; }
+  .panel-body .comms-link .addr { margin-left: auto; color: var(--text-3); font-size: 11.5px; font-weight: 400; }
+  @media (max-width: 560px){ .panel-body .comms-link .addr { margin-left: 0; width: 100%; } }
+  .panel-body .foot-note { font-size: 11px; color: var(--text-4); }
+
   /* ===== CSS3D "holo→crisp" reveal card (DS5) — a phosphor terminal card
      mounted in 3D at the outpost terminal, billboarded to the camera. It
      materializes only during the docking transition (the hologram resolving
@@ -177,8 +242,325 @@
     <span class="brand mono"><span class="dot"></span>RECON&nbsp;<span class="tag">// shivam som bajpai</span></span>
   </div>
 
-  <!-- INFO-mode content panels (populated by main.js; content lives in DOM) -->
-  <div id="infoLayer"></div>
+  <!-- INFO-mode content panels. Authored statically (not JS-generated) so the
+       full content exists in the served DOM with JS disabled (Seam 2: SEO/a11y
+       floor). Copy is verbatim from the live site; only HUD chrome is themed. -->
+  <div id="infoLayer">
+
+    <section class="panel" data-cp="0">
+      <div class="panel-head mono">
+        <span class="cp">00 · OVERWATCH</span>
+        <span class="lock">TARGET ACQUIRED</span>
+      </div>
+      <div class="panel-body"><div class="panel-scroll">
+        <p class="eyebrow">software engineer · full-stack builder</p>
+        <h1>I build things that <span class="gradient-text">work</span><span class="line2">— at scale, and for the love of it.</span></h1>
+        <p>
+          I ship production <strong>backend and platform systems</strong> for enterprise SaaS —
+          multi-cloud infrastructure, identity, and security that run across AWS, GCP, and
+          Azure in 10+ regions. Off the clock, I build whatever a problem needs:
+          <strong>AI-agent infrastructure</strong>, Android and iOS apps, CLIs, and ML pipelines.
+        </p>
+        <div class="links-row mono">
+          <a href="https://github.com/shivamsbajpai" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
+          <a href="./latest_resume.pdf" target="_blank" rel="noopener">Résumé</a>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="num">5+ yrs</div><div class="lbl mono">shipping software</div></div>
+          <div class="stat"><div class="num">3 clouds</div><div class="lbl mono">AWS · GCP · Azure</div></div>
+          <div class="stat"><div class="num">10+ regions</div><div class="lbl mono">in production</div></div>
+          <div class="stat"><div class="num">5 IdPs</div><div class="lbl mono">identity federation</div></div>
+        </div>
+        <p class="scroll-hint">scroll to traverse to the next checkpoint ▾</p>
+      </div></div>
+    </section>
+
+    <section class="panel" data-cp="1">
+      <div class="panel-head mono">
+        <span class="cp">01 · EXPERIENCE</span>
+        <span class="lock">TARGET ACQUIRED</span>
+      </div>
+      <div class="panel-body"><div class="panel-scroll">
+        <h2>Where I've shipped</h2>
+        <p class="section-sub">Five years across enterprise security, fintech, and platform infrastructure — owning services end to end.</p>
+
+        <div class="featured">
+          <div class="featured-top mono">
+            <span class="featured-role">Software Engineer</span>
+            <span class="featured-co"><a href="https://www.zscaler.com/press/zscaler-acquires-squarex" target="_blank" rel="noopener">SquareX</a></span>
+            <span class="featured-period">Dec 2023 — Jul 2025</span>
+          </div>
+          <p class="featured-meta mono">browser-native enterprise security · singapore · <a href="https://www.zscaler.com/press/zscaler-acquires-squarex" target="_blank" rel="noopener">acquired by Zscaler ↗</a></p>
+          <p class="featured-lead">
+            I owned multiple core backend services (Go &amp; Python) for a multi-tenant,
+            browser-native enterprise security platform on GCP, AWS, and Azure. A few of the
+            systems I built and led:
+          </p>
+          <div class="systems">
+            <div class="sys">
+              <div class="sys-name">Multi-cloud orchestrator <span class="chip mono">Go</span></div>
+              <p class="sys-desc">A node-orchestration control plane that provisions, autoscales, and upgrades compute across AWS, GCP &amp; Azure in 10+ regions — with a warm instance pool and spot-eviction handling to cut cloud spend.</p>
+            </div>
+            <div class="sys">
+              <div class="sys-name">Identity-sync engine <span class="chip mono">Go · gRPC</span></div>
+              <p class="sys-desc">Built largely solo: ingests users, groups &amp; devices from five identity providers — Entra, Okta, Google, JumpCloud, Ping — into per-tenant Postgres + BigQuery over gRPC.</p>
+            </div>
+            <div class="sys">
+              <div class="sys-name">Identity provider <span class="chip mono">Go · OIDC</span></div>
+              <p class="sys-desc">A multi-tenant OpenID Connect / OAuth2 provider — full authorization, token &amp; JWKS surface with per-tenant isolation and federated login via Entra &amp; Ping.</p>
+            </div>
+            <div class="sys">
+              <div class="sys-name">Domain-intelligence services <span class="chip mono">Go · GKE</span></div>
+              <p class="sys-desc">A six-service Go suite for credential management, domain categorization, WHOIS, and breach detection on GKE — fed by a Kafka / Pub-Sub event multiplexer.</p>
+            </div>
+          </div>
+          <p class="featured-foot">
+            Plus the <strong>policy &amp; access-control layer</strong> (policy engine, DLP, SSO, members/groups/devices),
+            the <strong>deployment toolkit</strong> that stands up per-tenant infrastructure across five regions, and
+            the reliability layer underneath it all — CI/CD, observability, SLO alerting, and secret management.
+          </p>
+        </div>
+
+        <div class="exp">
+          <div class="exp-header mono">
+            <span class="exp-role">Associate Product Manager</span>
+            <span class="exp-company">FinBox</span>
+            <span class="exp-period">Jan 2022 — Sep 2023</span>
+          </div>
+          <p class="exp-meta mono">fintech lending infrastructure · bengaluru, india</p>
+          <ul class="exp-list">
+            <li>Core maintainer of the FinBox lending platform — a Go backend powering embedded lending products.</li>
+            <li>Managed and migrated infrastructure to a secure, compliant cloud using Terraform.</li>
+          </ul>
+        </div>
+
+        <div class="exp">
+          <div class="exp-header mono">
+            <span class="exp-role">Product Management Intern</span>
+            <span class="exp-company">FinBox</span>
+            <span class="exp-period">Aug 2021 — Dec 2021</span>
+          </div>
+          <p class="exp-meta mono">bengaluru, india</p>
+          <ul class="exp-list">
+            <li>Built Grafana and Redash dashboards tracking key metrics and funnel conversion.</li>
+            <li>Developed Airflow DAGs and Python scripts to automate recurring data tasks.</li>
+          </ul>
+        </div>
+
+        <div class="exp">
+          <div class="exp-header mono">
+            <span class="exp-role">Software Development Intern</span>
+            <span class="exp-company">Afour Technologies</span>
+            <span class="exp-period">Jan 2021 — Jun 2021</span>
+          </div>
+          <p class="exp-meta mono">pune, india</p>
+          <ul class="exp-list">
+            <li>Worked on the backend of an internal product in .NET Core.</li>
+            <li>Built the backend of a Recruitment Application Tracking System with FastAPI (Python).</li>
+          </ul>
+        </div>
+
+        <div class="exp">
+          <div class="exp-header mono">
+            <span class="exp-role">Software Development Intern</span>
+            <span class="exp-company">Zaggle Prepaid Ocean Services</span>
+            <span class="exp-period">Aug 2020 — Dec 2020</span>
+          </div>
+          <p class="exp-meta mono">hyderabad, india</p>
+          <ul class="exp-list">
+            <li>Developed an iOS application in Swift.</li>
+          </ul>
+        </div>
+        <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>
+      </div></div>
+    </section>
+
+    <section class="panel" data-cp="2">
+      <div class="panel-head mono">
+        <span class="cp">02 · WORK</span>
+        <span class="lock">TARGET ACQUIRED</span>
+      </div>
+      <div class="panel-body"><div class="panel-scroll">
+        <h2>Things I build on my own</h2>
+        <p class="section-sub">Real, shipped side projects — from AI-agent infrastructure to mobile apps, CLIs, and ML pipelines.</p>
+
+        <p class="group-label mono">AI &amp; agent infrastructure</p>
+        <div class="project">
+          <div class="project-header">
+            <span class="project-name">second-brain</span>
+            <div class="project-tags mono">
+              <span class="tag">Go</span><span class="tag">React</span><span class="tag">private</span>
+            </div>
+          </div>
+          <p class="project-desc">
+            A structured personal-knowledge service that any AI agent can query over MCP
+            (Model Context Protocol). It stores preferences, policies, vendor ratings, and
+            order history across domains — food, coding, cabs, services — so an agent calls
+            <span class="mono">get_briefing()</span> for fast, token-frugal context before it acts.
+            Built with Go, Postgres + pgvector, and MCP over HTTP/SSE, with a React dashboard for
+            feedback and metrics. Includes sensitivity classification, provenance tracking, and
+            idempotent markdown import.
+          </p>
+        </div>
+        <div class="project">
+          <div class="project-header">
+            <span class="project-name">sales-saathi</span>
+            <div class="project-tags mono">
+              <span class="tag">Python</span><span class="tag">ML</span><span class="tag">private</span>
+            </div>
+          </div>
+          <p class="project-desc">
+            Live Hindi sales-call coaching. Two people role-play a loan call with push-to-talk;
+            it transcribes via local whisper-cpp (Metal-accelerated), whispers real-time nudges,
+            then scores the call across 7 dimensions with evidence-verified quotes. Runs entirely
+            locally — no API keys, no cloud.
+          </p>
+        </div>
+        <div class="project">
+          <div class="project-header">
+            <span class="project-name">lomasa-cli</span>
+            <div class="project-tags mono">
+              <span class="tag">Go</span><span class="tag">shipped</span>
+            </div>
+          </div>
+          <p class="project-desc">
+            A local AI-agent manager — like nvm, but for open-source AI agents. Install, configure,
+            and launch tools like Ollama and OpenCode. No API keys, no cloud — everything runs
+            locally. Named after the sage Lomasa from the Mahabharata.
+          </p>
+          <p class="project-links mono"><a href="https://github.com/lomasa-ai/lomasa-cli" target="_blank" rel="noopener">source →</a></p>
+        </div>
+
+        <p class="group-label mono">Apps, tools &amp; ML</p>
+        <div class="project">
+          <div class="project-header">
+            <span class="project-name">photo-gallery</span>
+            <div class="project-tags mono">
+              <span class="tag">Python</span><span class="tag">ML</span><span class="tag">Cloudflare</span>
+            </div>
+          </div>
+          <p class="project-desc">
+            Turns event photos into a deployed site where guests click a face to see every photo
+            that person appears in. RetinaFace + ArcFace for detection and recognition,
+            agglomerative clustering to group faces, collaborative naming. Deployed on Cloudflare
+            Pages + R2 + KV with password protection. Used at real weddings and events.
+          </p>
+        </div>
+        <div class="project">
+          <div class="project-header">
+            <span class="project-name">farm-pro</span>
+            <div class="project-tags mono">
+              <span class="tag">Kotlin</span><span class="tag">Python</span>
+            </div>
+          </div>
+          <p class="project-desc">
+            Bilingual (English + Hindi) Android app and FastAPI backend giving farmers in Kanpur
+            Dehat, UP actionable insights — IMD weather, severe-weather nowcasts, and advisory
+            bulletins parsed from DAAS PDFs. Every card shows its source and freshness. Offline-first
+            with WorkManager sync. In internal testing.
+          </p>
+        </div>
+        <div class="project">
+          <div class="project-header">
+            <span class="project-name">yt-skin</span>
+            <div class="project-tags mono">
+              <span class="tag">JavaScript</span><span class="tag">shipped</span>
+            </div>
+          </div>
+          <p class="project-desc">
+            A browser extension that adds a "skin" to YouTube — save videos and channels without
+            logging in, solving the problem of losing recommendations when watch history is off.
+            Published on both the Firefox Add-ons and Chrome Web Store.
+          </p>
+          <p class="project-links mono"><a href="https://github.com/shivamsbajpai/yt-skin" target="_blank" rel="noopener">source →</a></p>
+        </div>
+        <div class="project">
+          <div class="project-header">
+            <span class="project-name">ToLetLife</span>
+            <div class="project-tags mono">
+              <span class="tag">Kotlin</span><span class="tag">Python</span>
+            </div>
+          </div>
+          <p class="project-desc">
+            A rental marketplace where owners and renters connect directly. Full-stack: a Kotlin
+            Android app with a FastAPI backend, containerized with Docker. A complete product,
+            pitch deck and all.
+          </p>
+          <p class="project-links mono"><a href="https://github.com/shivamsbajpai/ToLetLife" target="_blank" rel="noopener">android →</a> <a href="https://github.com/shivamsbajpai/tolet_life_api" target="_blank" rel="noopener">api →</a></p>
+        </div>
+        <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>
+      </div></div>
+    </section>
+
+    <section class="panel" data-cp="3">
+      <div class="panel-head mono">
+        <span class="cp">03 · ABOUT</span>
+        <span class="lock">TARGET ACQUIRED</span>
+      </div>
+      <div class="panel-body"><div class="panel-scroll">
+        <h2>A builder who doesn't pick sides</h2>
+        <p>
+          I don't stick to one platform. Android in Kotlin, iOS in Swift, browser extensions in JS,
+          CLIs and backends in Go, services and ML pipelines in Python. If it solves a real problem,
+          I'll learn whatever stack gets it done — and ship it.
+        </p>
+        <p>
+          My day job is <strong>backend and platform engineering at scale</strong>: multi-cloud
+          orchestration, identity and access, and the reliability work that keeps multi-tenant
+          systems running across regions. The throughline is ownership — I like holding a service
+          end to end, from the data model to the deploy pipeline to the 2am alert.
+        </p>
+        <p>
+          Right now I'm deep in the <strong>AI/LLM space</strong> — not just using these tools, but
+          building infrastructure around them. <strong>second-brain</strong> is an MCP-native memory
+          service for agents; <strong>sales-saathi</strong> runs local whisper + LLM for real-time
+          Hindi coaching; <a href="https://github.com/lomasa-ai" target="_blank" rel="noopener">lomasa-ai</a>
+          is where the open-source work lives. I build for domains I care about — agritech, AI tooling,
+          and the small tools that make daily life better. Human ideas, AI-assisted execution.
+        </p>
+        <div class="stack-grid">
+          <div class="stack-item">
+            <h4 class="mono">Domains</h4>
+            <p>Enterprise security · Identity &amp; access · Multi-cloud orchestration · Fintech · Agritech · AI/LLM tooling</p>
+          </div>
+          <div class="stack-item">
+            <h4 class="mono">Infrastructure</h4>
+            <p>GCP · AWS · Azure · Kubernetes/GKE · Docker · Terraform · gRPC · Kafka/Pub-Sub · Postgres · BigQuery · Elasticsearch · Redis · Cloudflare</p>
+          </div>
+        </div>
+        <div class="tvash-block">
+          <h3>Meet Tvash</h3>
+          <p>
+            Tvash is my AI collaborator — a Claude-powered agent that's an actual part of my workflow,
+            not a gimmick. The lomasa-ai projects are human–AI pair-programmed: I bring the ideas and
+            judgment, Tvash helps execute. <a href="https://github.com/claudeforssb" target="_blank" rel="noopener">@claudeforssb</a>
+          </p>
+        </div>
+        <p class="scroll-hint">end of intel — one more scroll travels to the next checkpoint ▾</p>
+      </div></div>
+    </section>
+
+    <section class="panel" data-cp="4">
+      <div class="panel-head mono">
+        <span class="cp">04 · ESTABLISH COMMS</span>
+        <span class="lock">TARGET ACQUIRED</span>
+      </div>
+      <div class="panel-body"><div class="panel-scroll">
+        <p class="eyebrow">// final checkpoint — channels open</p>
+        <h2>Establish comms</h2>
+        <div class="comms-links">
+          <a class="comms-link" href="mailto:ssbajpai9@gmail.com"><span class="mono k">CH-01</span> Email <span class="mono addr">ssbajpai9@gmail.com</span></a>
+          <a class="comms-link" href="https://github.com/shivamsbajpai" target="_blank" rel="noopener"><span class="mono k">CH-02</span> GitHub <span class="mono addr">github.com/shivamsbajpai</span></a>
+          <a class="comms-link" href="https://github.com/lomasa-ai" target="_blank" rel="noopener"><span class="mono k">CH-03</span> lomasa-ai <span class="mono addr">github.com/lomasa-ai</span></a>
+          <a class="comms-link" href="./latest_resume.pdf" target="_blank" rel="noopener"><span class="mono k">CH-04</span> Résumé <span class="mono addr">latest_resume.pdf</span></a>
+        </div>
+        <p class="foot-note mono">© Shivam Som Bajpai</p>
+        <p class="scroll-hint">end of patrol — scroll up to traverse back ▴</p>
+      </div></div>
+    </section>
+
+  </div>
 
   <div id="spacer"></div>
 
