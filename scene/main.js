@@ -321,7 +321,7 @@ function initScene(renderer) {
   /* --- input: wheel / keyboard / touch drive the optic state machine --- */
   let mx = 0, my = 0, tmx = 0, tmy = 0, paused = false;
   let app = initState();
-  const TRAVEL_LEN = reduce ? 1 : 1100;   // px of scroll to traverse one gap (scroll-driven)
+  const TRAVEL_LEN = reduce ? 1 : 2400;   // px of scroll to traverse one gap (scroll-driven) — higher = slower/more gradual
   const LERP = reduce ? 1 : 0.22;
 
   function curContentMax() {
