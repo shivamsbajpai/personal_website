@@ -12,7 +12,7 @@ Branch `task/23-scroll-cadence` (stacked on `task/9-e2e-cutover`, [PR-22])
 | 3 | main.js stroke wiring | DONE spec ✅ code ✅ | (feat) | + `window.__optic` read-only debug handle |
 | 4 | hint copy + absorbed-stroke pulse | DONE spec ✅ code ✅ | (feat) | nudge bobs UP only (defect 1) |
 | 5 | e2e updates + full suites | DONE spec ✅ code ✅ | (feat) | 9 e2e pass; cadence spec added |
-| 6 | PR (base task/9-e2e-cutover) | in_progress | | |
+| 6 | PR (base task/9-e2e-cutover) | DONE — [PR-24] open, awaiting owner | 0070574 | retargets to `master` when [PR-22] merges |
 
 ## AC → step mapping
 
@@ -21,11 +21,17 @@ AC-6 → 3,5 (full AC text in [#23])
 
 ## Resume sequence for next session
 
-1. `git checkout task/23-scroll-cadence` (based on `task/9-e2e-cutover` —
-   if [#9]/[PR-22] merged meanwhile, rebase onto `master` and retarget the PR).
-2. Check the status table above; continue the first non-DONE step.
-3. Suites: `node --test` and `npx playwright test` (serves repo root;
-   a leftover `python3 -m http.server 8099` may already be running — reuse).
+1. All steps DONE; [PR-24] is open awaiting the **owner's** review+merge
+   (PR creation needs the keychain `gh` auth — `shivamsbajpai`; the `.env`
+   token `claudeforssb` can file issues but is not a collaborator).
+2. [PR-22] (cutover) merges first; GitHub auto-retargets [PR-24] to `master`.
+   If [PR-24]'s diff looks polluted with slice-7 commits, rebase onto `master`
+   after the cutover merge.
+3. Post-merge: write `summary.md`, verify [#23] auto-closed, done. Owner
+   feel-check on a real phone is the one open test-plan box.
+4. Suites if touching code again: `node --test`, `npx playwright test`
+   (a leftover `python3 -m http.server 8099` may already serve the repo —
+   [`probe.mjs`](probe.mjs) uses it for live state traces via `window.__optic`).
 
 ## Plan defects observed
 
@@ -67,3 +73,5 @@ AC-6 → 3,5 (full AC text in [#23])
 [#9]: https://github.com/shivamsbajpai/personal_website/issues/9
 [#23]: https://github.com/shivamsbajpai/personal_website/issues/23
 [PR-22]: https://github.com/shivamsbajpai/personal_website/pull/22
+
+[PR-24]: https://github.com/shivamsbajpai/personal_website/pull/24
