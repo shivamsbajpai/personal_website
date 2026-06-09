@@ -85,26 +85,32 @@ function vnoise(x, y) {
 }
 function fbm(x, y) { let f = 0, a = 0.5, fr = 1; for (let i = 0; i < 5; i++) { f += a * vnoise(x * fr, y * fr); fr *= 2.03; a *= 0.5; } return f; }
 function ridged(x, y) { const n = fbm(x, y); return 1 - Math.abs(n * 2 - 1); }
-// rolling base + crested (ridged) dunes + wind ripples
-function rawH(x, z) {
+// Smooth, low-frequency component: rolling base + crested (ridged) dunes. The
+// camera follows THIS (no ripple) so its path over a dune is smooth, not bumpy.
+function duneH(x, z) {
   const base = fbm(x * 0.0016 + 10, z * 0.0016 + 10) * 118;
   const dune = Math.pow(ridged(x * 0.0042 + 5, z * 0.0042 + 5), 1.5) * 64;
-  const ripple = Math.sin((x * 0.8 + z * 0.35) * 0.05 + fbm(x * 0.02, z * 0.02) * 6) * 1.4;
-  return base + dune + ripple - 92;
+  return base + dune - 92;
+}
+// Full terrain adds fine wind ripples on top (for the surface look only).
+function rawH(x, z) {
+  return duneH(x, z) + Math.sin((x * 0.8 + z * 0.35) * 0.05 + fbm(x * 0.02, z * 0.02) * 6) * 1.4;
 }
 // Graded flat pads around each checkpoint so the outpost props sit on visible
-// flat ground (an army base would be graded). Pad heights are precomputed from
-// the raw field; terrainH blends toward them within a radius.
+// flat ground (an army base would be graded). Pad heights precomputed from the
+// raw field; heights blend toward them within a radius.
 const PADS = CHECKPOINTS.map((cp) => ({ x: cp.anchor[0], z: cp.anchor[1], h: 0 }));
 PADS.forEach((p) => { p.h = rawH(p.x, p.z); });
-function terrainH(x, z) {
-  let h = rawH(x, z);
+function flattenToPads(h, x, z) {
   for (const p of PADS) {
     const d = Math.hypot(x - p.x, z - p.z), R = 64;
     if (d < R) { const e = d / R, s = e * e * (3 - 2 * e); const t = (1 - s) * 0.95; h = h * (1 - t) + p.h * t; }
   }
   return h;
 }
+function terrainH(x, z) { return flattenToPads(rawH(x, z), x, z); }
+// ripple-free ground for the camera to ride along (smooth)
+function camGround(x, z) { return flattenToPads(duneH(x, z), x, z); }
 
 /* ---------------- WebGL scene ---------------------------------------------- */
 const canvas = document.getElementById('bg');
@@ -391,16 +397,20 @@ function initScene(renderer) {
     // it is currently passing over. At checkpoints the vantage already sits above
     // the flat pad, so this is a no-op there.
     if (md === MODE.TRAVEL) {
-      const gy = terrainH(tPos.x, tPos.z) + 16;
+      const gy = camGround(tPos.x, tPos.z) + 16;   // ride above the smooth ground
       if (tPos.y < gy) tPos.y = gy;
-      const ly = terrainH(tLook.x, tLook.z) + 4;
+      const ly = camGround(tLook.x, tLook.z) + 4;
       if (tLook.y < ly) tLook.y = ly;
     }
     mx += (tmx - mx) * 0.05; my += (tmy - my) * 0.05;
     const look = md === MODE.TRAVEL ? 1 : 0;
     tLook.x += mx * 26 * look; tLook.y += -my * 16 * look; tPos.x += mx * 10 * look;
-    camPos.lerp(tPos, LERP); camLook.lerp(tLook, LERP);
-    if (md === MODE.TRAVEL) { const g = terrainH(camPos.x, camPos.z) + 10; if (camPos.y < g) camPos.y = g; } // never clip through a dune
+    // x/z track promptly; vertical is low-passed so the over-dune arc is smooth (no bumps)
+    camPos.x += (tPos.x - camPos.x) * LERP;
+    camPos.z += (tPos.z - camPos.z) * LERP;
+    camPos.y += (tPos.y - camPos.y) * (reduce ? 1 : md === MODE.TRAVEL ? 0.07 : LERP);
+    camLook.lerp(tLook, LERP);
+    if (md === MODE.TRAVEL) { const f = camGround(camPos.x, camPos.z) + 8; if (camPos.y < f) camPos.y += (f - camPos.y) * 0.4; } // soft floor, no hard kink
     camera.position.copy(camPos); camera.lookAt(camLook);
 
     sun.position.copy(camera.position).add(sunOffset);
