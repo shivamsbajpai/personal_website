@@ -11,6 +11,7 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
 | 1 | State machine + unit tests | DONE spec ✅ code ✅ | (init commit) | `node --test` → 11 pass |
 | 2 | v2.html shell (scope/HUD/panel/import map) | DONE spec ✅ code ✅ | (init commit) | leaves index.html untouched |
 | 3 | scene/main.js (sunny desert + wiring) | DONE spec ✅ code ✅ | (init commit) | travel↔info verified |
+| 3b | Photoreal pass (shadows/dunes/bump/bloom/buttes) | DONE ✅ | (realism commit) | per "make space more real" feedback |
 | 4 | Local verification | DONE ✅ | — | Playwright: 0 errors, dock + reverse OK |
 | 5 | Owner approval gate | pending | — | awaiting local sign-off before Slice 2 |
 

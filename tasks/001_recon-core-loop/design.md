@@ -38,6 +38,16 @@
 - **D8 — Three.js via pinned CDN import map** (`three@0.161.0`), addons mapped for
   later slices. Vendoring locally is a future-release TODO (per PRD).
 
-- **D9 — Sunny lighting reused from prototype.** ACES tone-map exposure 1.25,
-  high warm directional sun, lifted hemisphere/ambient, bright butterscotch sky
-  dome, bright fog — the agreed "sunny daytime, part-of-the-world" bar.
+- **D9 — Sunny lighting.** ACES tone-map, warm directional sun high and to the
+  **side** (raking, not dead-ahead — avoids staring into the sun), lifted
+  hemisphere/ambient, graded warm sky dome with a soft sun-scatter halo, bright
+  fog — the agreed "sunny daytime, part-of-the-world" bar.
+
+- **D10 — Photoreal pass (response to "make the space more real").** Added: real
+  directional-light **shadow mapping** (PCFSoft; the shadow frustum follows the
+  camera so dune self-shadows stay crisp), **ridged/crested dune** height (base
+  fbm + ridged dunes + wind ripples), a procedural **sand bump map** for
+  micro-relief, **EffectComposer + UnrealBloom** post pass (tuned low,
+  threshold 0.9 — also the pipeline the Slice-1→later DoF reuses), and **distant
+  noise-displaced buttes** for scale/depth fading into fog. Mobile scales down
+  (lower DPR, 1024 shadow map, lighter bloom).
