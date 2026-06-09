@@ -22,7 +22,7 @@
 //            stroke is absorbed whole (leftover swipe-spam from travelling
 //            must not scroll the freshly docked panel). Settle strokes also
 //            count toward `arm`, so backing straight out after arrival
-//            costs the same 2 absorbed strokes, not 4.
+//            costs SETTLE_TAPS absorbed strokes, not SETTLE_TAPS + EDGE_TAPS.
 //   arm    — strokes absorbed at a pinned content edge before the next push
 //            releases into travel; any stroke that moves content re-arms.
 //            Reading inside the content is always frictionless.
@@ -37,8 +37,8 @@ export const PHASE = { READING: 'READING', TRAVELLING: 'TRAVELLING' };
 export const MODE = { TRAVEL: 'TRAVEL', INFO: 'INFO' };
 
 export const TRAVEL_STEPS = 3;  // strokes to cross one checkpoint gap
-export const EDGE_TAPS = 2;     // absorbed strokes before a pinned edge releases
-export const SETTLE_TAPS = 2;   // strokes absorbed whole after a scroll-travel arrival
+export const EDGE_TAPS = 1;     // absorbed strokes before a pinned edge releases (owner feel-tested 2 -> 1)
+export const SETTLE_TAPS = 1;   // strokes absorbed whole after a scroll-travel arrival (owner feel-tested 2 -> 1)
 export const PIN_SLOP = 4;      // px within which an edge counts as pinned — contentMax
                                 // is a live DOM measurement and jitters a few px
                                 // (animations, font loads, mobile URL-bar resize)
