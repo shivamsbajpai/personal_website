@@ -15,7 +15,7 @@ Branch: `task/3-recon-core-loop` · Preview: `python3 -m http.server 8099` → `
 | 3c | Deserted army outposts at checkpoints (graded pads + tank/crates/sandbags/antenna/hedgehogs); mountains removed | DONE ✅ | (army commit) | per feedback; procedural stand-ins, GLTF kit in Slice 2 (#4) |
 | 3d | Travel mechanic: reading-scroll decoupled; travel is **scroll-driven** (scrub camera between checkpoints, holds when idle); over-dune clearance + smoothing | DONE ✅ | (mechanic/scrub/smooth commits) | per feedback "too fast", "multiple scroll moves", "moving on its own → scrollable", "bumpy"; state.js scroll-driven, 11/11 tests |
 | 4 | Local verification | DONE ✅ | — | Playwright: 0 errors, dock + reverse OK |
-| 5 | Owner approval gate | DONE ✅ | — | owner approved reverse-travel fix; PR #10 opened (Closes #3) |
+| 5 | Owner approval gate | DONE ✅ | — | owner verified reverse-travel + reduced-motion fixes ("travel feels good"); PR #10 open (Closes #3), awaiting owner merge |
 
 ## Acceptance criteria → step
 
