@@ -7,7 +7,7 @@ Plan: [`plan.md`](plan.md) · Branch `task/29-private-pages-deploy`
 | # | Step | State | Commit | Notes |
 |---|------|-------|--------|-------|
 | 1 | allowlist deploy workflow | DONE spec ✅ code ✅ | (feat) | allowlist grep-verified |
-| 2 | PR (owner merge — deploy gate) | in_progress | | blocked: push needs `workflow` scope (see defect 1); body drafted, pre-merge checks all green |
+| 2 | PR (owner merge — deploy gate) | DONE spec ✅ code ✅ | (docs) | [PR-30] open, all pre-merge checks evidenced in body; awaits owner merge |
 | 3 | flip Pages build_type → workflow | pending | | after merge, then dispatch |
 | 4 | live verification (AC-1…AC-4) | pending | | evidence on the PR |
 
@@ -18,14 +18,10 @@ survive → 3,4 · AC-4 auto-deploy on merge → 1,4 (full AC text in [#29])
 
 ## Resume sequence for next session
 
-0. If the branch isn't pushed yet: the owner must run
-   `gh auth refresh -h github.com -s workflow` first (defect 1), then
-   `git push -u origin task/29-private-pages-deploy` and
-   `gh pr create --base master --head task/29-private-pages-deploy
-   --title "Private process docs: Pages deploys site files only (Actions build)"
-   --body-file .scratch/pr-29-body.md` (body draft lives in gitignored
-   `.scratch/`; pre-merge evidence already inline).
-1. If the PR is unmerged: it awaits the owner (deploy-config gate).
+1. If [PR-30] is unmerged: it awaits the owner (deploy-config gate).
+   Owner ran `gh auth refresh -s workflow` 2026-06-10 (defect 1 resolved)
+   and explicitly approved the Actions allowlist route after weighing the
+   `/docs`-folder alternative.
 2. After merge: `gh api -X PUT repos/shivamsbajpai/personal_website/pages
    -f build_type=workflow`, then confirm the `pages` workflow run succeeds
    (`gh run list --workflow=pages`).
@@ -59,3 +55,4 @@ survive → 3,4 · AC-4 auto-deploy on merge → 1,4 (full AC text in [#29])
 [#2]: https://github.com/shivamsbajpai/personal_website/issues/2
 [#29]: https://github.com/shivamsbajpai/personal_website/issues/29
 [PR-28]: https://github.com/shivamsbajpai/personal_website/pull/28
+[PR-30]: https://github.com/shivamsbajpai/personal_website/pull/30
