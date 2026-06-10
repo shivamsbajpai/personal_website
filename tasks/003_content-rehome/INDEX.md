@@ -59,7 +59,7 @@ total (the single miss is the first visible frame — the clamp uses the
 previous frame's rect, one-frame lag, sub-perceptual). **Reduced-motion:**
 travel preserved (TRAVERSING), docks at 01 · EXPERIENCE with panel 1.
 **0 console errors/warnings across the whole session.** Résumé PDF 200 local;
-all 8 external links (GitHub ×6, zscaler press, claudeforssb) → 200.
+all 8 external links → 200.
 `index.html` untouched (`git diff master -- index.html` empty).
 
 ## Carry-forward invariants (Slices 1–2 — do NOT regress)

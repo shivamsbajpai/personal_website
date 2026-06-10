@@ -22,9 +22,7 @@ AC-6 → 3,5 (full AC text in [#23])
 
 ## Resume sequence for next session
 
-1. All steps DONE; [PR-24] is open awaiting the **owner's** review+merge
-   (PR creation needs the keychain `gh` auth — `shivamsbajpai`; the `.env`
-   token `claudeforssb` can file issues but is not a collaborator).
+1. All steps DONE; [PR-24] is open awaiting the **owner's** review+merge.
 2. [PR-22] (cutover) merges first; GitHub auto-retargets [PR-24] to `master`.
    If [PR-24]'s diff looks polluted with slice-7 commits, rebase onto `master`
    after the cutover merge.
